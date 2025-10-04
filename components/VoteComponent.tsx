@@ -40,13 +40,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setIsLoading(true);
     setError(null);
 
-    const verifyPayload = {
-      action: actionId,
-      signal: poll.id,
-    } as VerifyCommandInput;
-
     try {
-      const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload);
+      const { finalPayload } = await MiniKit.commandsAsync.verify({
+        action: actionId,
+        signal: poll.id,
+      } as VerifyCommandInput);
 
       if (finalPayload.status === 'error') {
         setError(finalPayload.error_code || 'Verification failed');
@@ -54,19 +52,21 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         return;
       }
 
+      console.log('MiniKit proof payload:', JSON.stringify(finalPayload, null, 2));
       await handleVote(finalPayload);
-    } catch (err) {
+
+    } catch (err: any) {
       console.error('Verification error:', err);
-      setError('Verification failed. Please try again.');
+      setError(`Verification failed: ${err?.message ?? String(err)}`);
       setIsLoading(false);
     }
   };
 
-  const handleVote = async (proof: any) => {
+  const handleVote = async (proof: unknown) => {
     if (selectedOption === null) return;
 
     try {
-      const response = await fetch('/api/vote', {
+      const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,10 +76,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'An unexpected error occurred.');
+      if (!res.ok) {
+        console.error('Vote failed:', data);
+        throw new Error(data.error ?? 'Vote failed');
       }
       
       const pollResults: PollWithResults = {
@@ -89,12 +90,9 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       };
       setResults(pollResults);
 
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred.');
-      }
+    } catch (err: any) {
+      setError(`Vote submission failed: ${err?.message ?? String(err)}`);
+      console.error('Vote submission failed:', err);
     } finally {
       setIsLoading(false);
     }
