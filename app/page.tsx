@@ -1,14 +1,12 @@
-
 import VoteComponent from '@/components/VoteComponent';
 import { LivePollResponse } from '@/lib/types';
 
 async function getLivePoll(): Promise<LivePollResponse> {
   const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-  // Fix: Cast fetch options to `any` to allow Next.js-specific `next` property
-  // and prevent TypeScript error "Property 'next' does not exist in type 'RequestInit'".
+  
   const res = await fetch(`${host}/api/polls/live`, {
-    next: { revalidate: 30 } // Revalidate every 30 seconds
-  } as any);
+    cache: 'no-store'
+  });
 
   if (!res.ok) {
     console.error('Failed to fetch live poll');
@@ -42,5 +40,4 @@ export default async function HomePage() {
   );
 }
 
-// Enable dynamic rendering
 export const dynamic = 'force-dynamic';
