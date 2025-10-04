@@ -1,8 +1,6 @@
-
 interface VerifyReply {
   isHuman: boolean;
   nullifier_hash: string;
-  // Other fields are available but we only need these two
 }
 
 export async function verifyProof(proof: any, actionId: string): Promise<VerifyReply> {
@@ -13,9 +11,22 @@ export async function verifyProof(proof: any, actionId: string): Promise<VerifyR
     throw new Error("World ID environment variables are not set.");
   }
 
+  console.log("Verifying proof with action:", actionId);
+  console.log("Proof object keys:", Object.keys(proof));
+
   const verifyEndpoint = 'https://developer.worldcoin.org/api/v2/verify';
 
-  console.log("Verifying proof with action:", actionId);
+  // Map MiniKit proof to World ID API format
+  const requestBody = {
+    app_id: WLD_APP_ID,
+    action: actionId,
+    proof: proof.proof || proof,
+    merkle_root: proof.merkle_root,
+    nullifier_hash: proof.nullifier_hash,
+    verification_level: proof.verification_level,
+  };
+
+  console.log("Sending to World ID API:", { ...requestBody, proof: '[REDACTED]' });
 
   const res = await fetch(verifyEndpoint, {
     method: "POST",
@@ -23,23 +34,28 @@ export async function verifyProof(proof: any, actionId: string): Promise<VerifyR
       "Content-Type": "application/json",
       "Authorization": `Bearer ${WLD_API_KEY}`,
     },
-    body: JSON.stringify({
-      ...proof,
-      action: actionId,
-      app_id: WLD_APP_ID,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
+  const responseText = await res.text();
+  console.log("World ID API response status:", res.status);
+  console.log("World ID API response (first 200 chars):", responseText.substring(0, 200));
+
   if (!res.ok) {
-    const errorBody = await res.json();
+    let errorBody;
+    try {
+      errorBody = JSON.parse(responseText);
+    } catch {
+      throw new Error(`World ID API returned non-JSON response (${res.status}): ${responseText.substring(0, 100)}`);
+    }
     console.error("Verification failed:", errorBody);
-    throw new Error(`Verification failed: ${res.statusText} - ${JSON.stringify(errorBody)}`);
+    throw new Error(`Verification failed: ${JSON.stringify(errorBody)}`);
   }
 
-  const data = await res.json();
+  const data = JSON.parse(responseText);
 
   return {
-    isHuman: data.is_human,
-    nullifier_hash: data.nullifier_hash,
+    isHuman: data.success === true,
+    nullifier_hash: proof.nullifier_hash,
   };
 }
