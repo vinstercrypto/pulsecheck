@@ -1,6 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/results/page": "app/results/page.js",
-  "/about/page": "app/about/page.js",
-  "/api/polls/live/route": "app/api/polls/live/route.js"
-}
