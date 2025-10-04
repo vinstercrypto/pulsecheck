@@ -1,4 +1,10 @@
-
+export async function GET() {
+  console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+  console.log('SERVICE_KEY length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length);
+  
+  const now = new Date().toISOString();
+  // ... rest of your existing code
 import { supabase } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
