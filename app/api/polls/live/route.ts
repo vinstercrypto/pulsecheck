@@ -19,9 +19,12 @@ export async function GET() {
     .single();
 
   if (liveError && liveError.code !== 'PGRST116') {
-    console.error('Error fetching live poll:', liveError);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  console.error('Error fetching live poll:', liveError);
+  console.error('Error code:', liveError.code);
+  console.error('Error message:', liveError.message);
+  console.error('Error details:', JSON.stringify(liveError, null, 2));
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+}
 
   if (livePoll) {
     const parsedPoll = {
