@@ -25,81 +25,48 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
-  const [miniKitLoaded, setMiniKitLoaded] = useState(false);
 
   const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE!;
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const initMiniKit = async () => {
-      try {
-        const MiniKitModule = await import('@worldcoin/minikit-react');
-        const MiniKit = (MiniKitModule as any).MiniKit || (MiniKitModule as any).default?.MiniKit;
-        const ResponseEvent = (MiniKitModule as any).ResponseEvent || (MiniKitModule as any).default?.ResponseEvent;
-        
-        if (MiniKit && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled()) {
-          setMiniKitLoaded(true);
-          
-          if (ResponseEvent && MiniKit.subscribe) {
-            MiniKit.subscribe(ResponseEvent.MiniAppVerifyAction, async (response: any) => {
-              if (response.status === 'error') {
-                setError(response.error_code || 'Verification failed');
-                setIsLoading(false);
-                return;
-              }
-              await handleVote(response);
-            });
-
-            return () => {
-              if (MiniKit.unsubscribe) {
-                MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
-              }
-            };
-          }
-        }
-      } catch (err) {
-        console.log('MiniKit not available:', err);
-      }
-    };
-
-    initMiniKit();
-  }, []);
-
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
-    
-    if (!miniKitLoaded) {
-      setError('This app must be opened in World App to vote. Deploy to Vercel and open the URL in World App to test voting.');
-      return;
-    }
     
     setIsLoading(true);
     setError(null);
 
     try {
-      const MiniKitModule = await import('@worldcoin/minikit-react');
-      const MiniKit = (MiniKitModule as any).MiniKit || (MiniKitModule as any).default?.MiniKit;
+      const { MiniKit } = await import('@worldcoin/minikit-react');
       
-      if (MiniKit && MiniKit.commands && MiniKit.commands.verify) {
-        MiniKit.commands.verify({
-          action: actionId,
-          signal: poll.id,
-          verification_level: 'device',
-        });
-      } else {
-        throw new Error('MiniKit commands not available');
+      if (!MiniKit.isInstalled()) {
+        setError('Please open this app in World App to vote.');
+        setIsLoading(false);
+        return;
       }
+
+      const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
+        action: actionId,
+        signal: poll.id,
+        verification_level: 'device',
+      });
+
+      if (finalPayload.status === 'error') {
+        setError(finalPayload.error_code || 'Verification failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Submit vote with proof
+      await handleVote(finalPayload);
+
     } catch (err) {
-      setError('Failed to initialize verification');
+      console.error('Verification error:', err);
+      setError('Verification failed. Please try again.');
       setIsLoading(false);
     }
   };
 
   const handleVote = async (proof: any) => {
     if (selectedOption === null) return;
-
-    console.log("Submitting vote with proof...");
 
     try {
       const response = await fetch('/api/vote', {
