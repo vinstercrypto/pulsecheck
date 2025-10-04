@@ -1,14 +1,11 @@
+import { supabase } from '@/lib/db';
+import { NextResponse } from 'next/server';
+
 export async function GET() {
   console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
   console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
   console.log('SERVICE_KEY length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length);
   
-  const now = new Date().toISOString();
-  // ... rest of your existing code
-import { supabase } from '@/lib/db';
-import { NextResponse } from 'next/server';
-
-export async function GET() {
   const now = new Date().toISOString();
 
   // Find a poll that is currently live
@@ -21,21 +18,20 @@ export async function GET() {
     .limit(1)
     .single();
 
-  if (liveError && liveError.code !== 'PGRST116') { // PGRST116 is "No rows found"
+  if (liveError && liveError.code !== 'PGRST116') {
     console.error('Error fetching live poll:', liveError);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
   if (livePoll) {
-  // Parse options from JSON string to array
-  const parsedPoll = {
-    ...livePoll,
-    options: typeof livePoll.options === 'string' 
-      ? JSON.parse(livePoll.options) 
-      : livePoll.options
-  };
-  return NextResponse.json({ poll: parsedPoll });
-}
+    const parsedPoll = {
+      ...livePoll,
+      options: typeof livePoll.options === 'string' 
+        ? JSON.parse(livePoll.options) 
+        : livePoll.options
+    };
+    return NextResponse.json({ poll: parsedPoll });
+  }
 
   // If no live poll, find the next scheduled poll
   const { data: scheduledPoll, error: scheduledError } = await supabase
@@ -53,10 +49,9 @@ export async function GET() {
   }
 
   if (scheduledPoll) {
-  const startsInSeconds = (new Date(scheduledPoll.start_ts).getTime() - new Date().getTime()) / 1000;
-  return NextResponse.json({ poll: null, starts_in_seconds: startsInSeconds });
-}
+    const startsInSeconds = (new Date(scheduledPoll.start_ts).getTime() - new Date().getTime()) / 1000;
+    return NextResponse.json({ poll: null, starts_in_seconds: startsInSeconds });
+  }
   
-  // No live or scheduled polls found
   return NextResponse.json({ poll: null });
 }
