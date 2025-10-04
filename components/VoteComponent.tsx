@@ -32,14 +32,14 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  const actionId =
+  // Accept either env key; prefer WORLDCON
+  const rawActionId =
     process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ??
     process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ??
     'unset';
 
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
-
     if (!MiniKit.isInstalled()) {
       setError('Open this in World App. Orb-verified humans only.');
       return;
@@ -49,12 +49,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      // Normalize signal to string to satisfy downstream types.
+      // Normalize to strings for downstream functions
+      const action = String(rawActionId);
       const signal = String(poll.id);
 
       const verifyPayload: VerifyCommandInput = {
-        action: actionId,
-        signal, // <- always a string now
+        action,                      // now definitely a string
+        signal,                      // now definitely a string
         verification_level: VerificationLevel.Orb,
       };
 
@@ -66,14 +67,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         return;
       }
 
-      // Debug only; remove later
+      // Optional debug
       console.log('MiniKit success payload:', {
         status: finalPayload.status,
         verification_level: (finalPayload as any).verification_level,
       });
 
-      // Pass normalized string
-      await handleVote(finalPayload as ISuccessResult, verifyPayload.action, signal);
+      await handleVote(finalPayload as ISuccessResult, action, signal);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
@@ -81,6 +81,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     }
   };
 
+  // action and signal are plain strings now
   const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
     if (selectedOption === null) return;
 
@@ -93,7 +94,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           optionIdx: selectedOption,
           payload,
           action,
-          signal, // <- string
+          signal,
         }),
       });
 
