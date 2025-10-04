@@ -1,18 +1,32 @@
 import VoteComponent from '@/components/VoteComponent';
 import { LivePollResponse } from '@/lib/types';
+import { supabase } from '@/lib/db';
 
 async function getLivePoll(): Promise<LivePollResponse> {
-  const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-  
-  const res = await fetch(`${host}/api/polls/live`, {
-    cache: 'no-store'
-  });
+  const now = new Date().toISOString();
 
-  if (!res.ok) {
-    console.error('Failed to fetch live poll');
+  const { data: livePoll, error } = await supabase
+    .from('poll')
+    .select('*')
+    .eq('status', 'live')
+    .lte('start_ts', now)
+    .gte('end_ts', now)
+    .limit(1)
+    .single();
+
+  if (error || !livePoll) {
     return { poll: null };
   }
-  return res.json();
+
+  // Parse options from JSON to array
+  const parsedPoll = {
+    ...livePoll,
+    options: typeof livePoll.options === 'string' 
+      ? JSON.parse(livePoll.options) 
+      : livePoll.options
+  };
+
+  return { poll: parsedPoll };
 }
 
 export default async function HomePage() {
