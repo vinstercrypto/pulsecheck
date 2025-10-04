@@ -5,54 +5,54 @@ interface VerifyReply {
 
 export async function verifyProof(proof: any, actionId: string): Promise<VerifyReply> {
   const WLD_APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID;
-  const WLD_API_KEY = process.env.WLD_API_KEY;
 
-  if (!WLD_APP_ID || !WLD_API_KEY) {
-    throw new Error("World ID environment variables are not set.");
+  if (!WLD_APP_ID) {
+    throw new Error("WLD_APP_ID environment variable is not set.");
   }
 
   console.log("Verifying proof with action:", actionId);
-  console.log("Proof object keys:", Object.keys(proof));
+  console.log("Proof structure:", Object.keys(proof));
 
-  const verifyEndpoint = 'https://developer.worldcoin.org/api/v2/verify';
+  // World ID v2 verify endpoint format
+  const verifyEndpoint = `https://developer.worldcoin.org/api/v2/verify/${WLD_APP_ID}`;
 
-  // Map MiniKit proof to World ID API format
   const requestBody = {
-    app_id: WLD_APP_ID,
-    action: actionId,
-    proof: proof.proof || proof,
-    merkle_root: proof.merkle_root,
     nullifier_hash: proof.nullifier_hash,
+    merkle_root: proof.merkle_root,
+    proof: proof.proof,
     verification_level: proof.verification_level,
+    action: actionId,
   };
 
-  console.log("Sending to World ID API:", { ...requestBody, proof: '[REDACTED]' });
+  console.log("Sending to World ID:", { 
+    endpoint: verifyEndpoint,
+    action: actionId,
+    verification_level: requestBody.verification_level 
+  });
 
   const res = await fetch(verifyEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${WLD_API_KEY}`,
     },
     body: JSON.stringify(requestBody),
   });
 
   const responseText = await res.text();
-  console.log("World ID API response status:", res.status);
-  console.log("World ID API response (first 200 chars):", responseText.substring(0, 200));
-
+  
   if (!res.ok) {
+    console.error("World ID API error:", res.status, responseText);
     let errorBody;
     try {
       errorBody = JSON.parse(responseText);
     } catch {
-      throw new Error(`World ID API returned non-JSON response (${res.status}): ${responseText.substring(0, 100)}`);
+      throw new Error(`World ID API error (${res.status}): ${responseText.substring(0, 200)}`);
     }
-    console.error("Verification failed:", errorBody);
-    throw new Error(`Verification failed: ${JSON.stringify(errorBody)}`);
+    throw new Error(`Verification failed: ${errorBody.detail || errorBody.message || JSON.stringify(errorBody)}`);
   }
 
   const data = JSON.parse(responseText);
+  console.log("World ID verification successful");
 
   return {
     isHuman: data.success === true,
