@@ -2,7 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import type { Poll, PollWithResults } from '@/lib/types';
-import { MiniKit, VerifyCommandInput } from '@worldcoin/minikit-js';
+import {
+  MiniKit,
+  VerifyCommandInput,
+  VerificationLevel,
+  ISuccessResult,
+} from '@worldcoin/minikit-js';
 
 interface VoteComponentProps {
   poll: Poll;
@@ -13,7 +18,7 @@ const ProgressBar = ({ percent, label }: { percent: number; label: string }) => 
     <div
       className="bg-blue-500 h-8 rounded-full transition-all duration-500 ease-out"
       style={{ width: `${percent}%` }}
-    ></div>
+    />
     <span className="absolute left-3 right-3 flex justify-between items-center text-sm font-medium text-white">
       <span>{label}</span>
       <span>{percent.toFixed(1)}%</span>
@@ -27,13 +32,17 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE!;
+  // Accept either env name; prefer WORLDCON to match server
+  const actionId =
+    process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ??
+    process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ??
+    'unset';
 
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
-    
+
     if (!MiniKit.isInstalled()) {
-      setError('Please open this app in World App to vote.');
+      setError('Open this in World App. Orb-verified humans only.');
       return;
     }
 
@@ -41,10 +50,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      const { finalPayload } = await MiniKit.commandsAsync.verify({
+      const verifyPayload: VerifyCommandInput = {
         action: actionId,
-        signal: poll.id,
-      } as VerifyCommandInput);
+        signal: poll.id, // must match server-side verification
+        verification_level: VerificationLevel.Orb, // enforce Orb on client
+      };
+
+      const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload);
 
       if (finalPayload.status === 'error') {
         setError(finalPayload.error_code || 'Verification failed');
@@ -52,9 +64,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         return;
       }
 
-      console.log('MiniKit proof payload:', JSON.stringify(finalPayload, null, 2));
-      await handleVote(finalPayload);
+      // Debug only; remove later
+      console.log('MiniKit success payload:', {
+        status: finalPayload.status,
+        verification_level: (finalPayload as any).verification_level,
+      });
 
+      await handleVote(finalPayload as ISuccessResult, verifyPayload.action, verifyPayload.signal as string);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
@@ -62,17 +78,20 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     }
   };
 
-  const handleVote = async (proof: unknown) => {
+  const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
     if (selectedOption === null) return;
 
     try {
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // IMPORTANT: server expects payload/action/signal, not "proof"
         body: JSON.stringify({
           pollId: poll.id,
           optionIdx: selectedOption,
-          proof,
+          payload,
+          action,
+          signal,
         }),
       });
 
@@ -82,14 +101,22 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         console.error('Vote failed:', data);
         throw new Error(data.error ?? 'Vote failed');
       }
-      
-      const pollResults: PollWithResults = {
-        ...poll,
-        counts: data.totalsPerOption.map((count: number, index: number) => ({ option_idx: index, count })),
-        total_votes: data.totalVotes,
-      };
-      setResults(pollResults);
 
+      // If your API returns totals, keep this; otherwise adjust to your actual response
+      if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
+        const pollResults: PollWithResults = {
+          ...poll,
+          counts: data.totalsPerOption.map((count: number, index: number) => ({
+            option_idx: index,
+            count,
+          })),
+          total_votes: data.totalVotes,
+        };
+        setResults(pollResults);
+      } else {
+        // Minimal OK path when API just returns { ok: true }
+        setResults(null);
+      }
     } catch (err: any) {
       setError(`Vote submission failed: ${err?.message ?? String(err)}`);
       console.error('Vote submission failed:', err);
@@ -102,7 +129,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     if (!results) return null;
     const totalVotes = results.total_votes;
     return results.options.map((option, index) => {
-      const voteInfo = results.counts.find(c => c.option_idx === index);
+      const voteInfo = results.counts.find((c) => c.option_idx === index);
       const count = voteInfo ? voteInfo.count : 0;
       const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
       return { label: option, percentage, count };
@@ -117,11 +144,15 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           {pollResultsData.map((res, index) => (
             <div key={index}>
               <ProgressBar percent={res.percentage} label={res.label} />
-              <p className="text-xs text-brand-gray-400 text-right mt-1">{res.count.toLocaleString()} votes</p>
+              <p className="text-xs text-brand-gray-400 text-right mt-1">
+                {res.count.toLocaleString()} votes
+              </p>
             </div>
           ))}
         </div>
-        <p className="text-center mt-6 text-brand-gray-300 font-medium">Total Votes: {results.total_votes.toLocaleString()}</p>
+        <p className="text-center mt-6 text-brand-gray-300 font-medium">
+          Total Votes: {results.total_votes.toLocaleString()}
+        </p>
       </div>
     );
   }
@@ -144,7 +175,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           </button>
         ))}
       </div>
-      
+
       {error && <p className="text-red-400 text-center mb-4">{error}</p>}
 
       <button
