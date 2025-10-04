@@ -25,36 +25,41 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
-  const [isMiniKitReady, setIsMiniKitReady] = useState(false);
+  const [miniKitLoaded, setMiniKitLoaded] = useState(false);
 
   const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE!;
 
   useEffect(() => {
-    // Dynamically import MiniKit only on client side
-    const initMiniKit = async () => {
-      if (typeof window === 'undefined') return;
-      
-      try {
-        const { MiniKit, ResponseEvent } = await import('@worldcoin/minikit-react');
-        
-        if (MiniKit.isInstalled()) {
-          setIsMiniKitReady(true);
-          
-          MiniKit.subscribe(ResponseEvent.MiniAppVerifyAction, async (response: any) => {
-            if (response.status === 'error') {
-              setError(response.error_code || 'Verification failed');
-              setIsLoading(false);
-              return;
-            }
-            await handleVote(response);
-          });
+    if (typeof window === 'undefined') return;
 
-          return () => {
-            MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
-          };
+    const initMiniKit = async () => {
+      try {
+        const MiniKitModule = await import('@worldcoin/minikit-react');
+        const MiniKit = (MiniKitModule as any).MiniKit || (MiniKitModule as any).default?.MiniKit;
+        const ResponseEvent = (MiniKitModule as any).ResponseEvent || (MiniKitModule as any).default?.ResponseEvent;
+        
+        if (MiniKit && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled()) {
+          setMiniKitLoaded(true);
+          
+          if (ResponseEvent && MiniKit.subscribe) {
+            MiniKit.subscribe(ResponseEvent.MiniAppVerifyAction, async (response: any) => {
+              if (response.status === 'error') {
+                setError(response.error_code || 'Verification failed');
+                setIsLoading(false);
+                return;
+              }
+              await handleVote(response);
+            });
+
+            return () => {
+              if (MiniKit.unsubscribe) {
+                MiniKit.unsubscribe(ResponseEvent.MiniAppVerifyAction);
+              }
+            };
+          }
         }
       } catch (err) {
-        console.log('MiniKit not available');
+        console.log('MiniKit not available:', err);
       }
     };
 
@@ -64,7 +69,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
     
-    if (!isMiniKitReady) {
+    if (!miniKitLoaded) {
       setError('This app must be opened in World App to vote. Deploy to Vercel and open the URL in World App to test voting.');
       return;
     }
@@ -73,13 +78,18 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      const { MiniKit } = await import('@worldcoin/minikit-react');
+      const MiniKitModule = await import('@worldcoin/minikit-react');
+      const MiniKit = (MiniKitModule as any).MiniKit || (MiniKitModule as any).default?.MiniKit;
       
-      MiniKit.commands.verify({
-        action: actionId,
-        signal: poll.id,
-        verification_level: 'device',
-      });
+      if (MiniKit && MiniKit.commands && MiniKit.commands.verify) {
+        MiniKit.commands.verify({
+          action: actionId,
+          signal: poll.id,
+          verification_level: 'device',
+        });
+      } else {
+        throw new Error('MiniKit commands not available');
+      }
     } catch (err) {
       setError('Failed to initialize verification');
       setIsLoading(false);
