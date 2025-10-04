@@ -1,0 +1,5 @@
+{
+  "name": "PulseCheck",
+  "description": "A daily, one-human-one-vote polling app using World ID for verification.",
+  "requestFramePermissions": []
+}
