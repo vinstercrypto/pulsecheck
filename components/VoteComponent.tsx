@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { Poll, PollWithResults } from '@/lib/types';
-import { MiniKit, VerifyCommandInput, ResponseEvent } from '@worldcoin/minikit-js';
+import { MiniKit, VerifyCommandInput } from '@worldcoin/minikit-js';
 
 interface VoteComponentProps {
   poll: Poll;
@@ -40,11 +40,10 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setIsLoading(true);
     setError(null);
 
-    const verifyPayload: VerifyCommandInput = {
+    const verifyPayload = {
       action: actionId,
       signal: poll.id,
-      verification_level: 'device',
-    };
+    } as VerifyCommandInput;
 
     try {
       const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload);
