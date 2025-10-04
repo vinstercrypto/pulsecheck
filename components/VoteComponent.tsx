@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { Poll, PollWithResults } from '@/lib/types';
 
 interface VoteComponentProps {
@@ -35,28 +35,28 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      const { MiniKit } = await import('@worldcoin/minikit-react');
+      const MiniKitModule = await import('@worldcoin/minikit-react');
+      const MiniKit = (MiniKitModule as any).MiniKit || (MiniKitModule as any).default?.MiniKit;
       
-      if (!MiniKit.isInstalled()) {
+      if (!MiniKit || !MiniKit.isInstalled || !MiniKit.isInstalled()) {
         setError('Please open this app in World App to vote.');
         setIsLoading(false);
         return;
       }
 
-      const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
+      const response = await MiniKit.commandsAsync.verify({
         action: actionId,
         signal: poll.id,
         verification_level: 'device',
       });
 
-      if (finalPayload.status === 'error') {
-        setError(finalPayload.error_code || 'Verification failed');
+      if (response.finalPayload.status === 'error') {
+        setError(response.finalPayload.error_code || 'Verification failed');
         setIsLoading(false);
         return;
       }
 
-      // Submit vote with proof
-      await handleVote(finalPayload);
+      await handleVote(response.finalPayload);
 
     } catch (err) {
       console.error('Verification error:', err);
