@@ -32,7 +32,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  // Accept either env name; prefer WORLDCON to match server
   const actionId =
     process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ??
     process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ??
@@ -50,10 +49,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
+      // Normalize signal to string to satisfy downstream types.
+      const signal = String(poll.id);
+
       const verifyPayload: VerifyCommandInput = {
         action: actionId,
-        signal: poll.id, // must match server-side verification
-        verification_level: VerificationLevel.Orb, // enforce Orb on client
+        signal, // <- always a string now
+        verification_level: VerificationLevel.Orb,
       };
 
       const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload);
@@ -70,7 +72,8 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         verification_level: (finalPayload as any).verification_level,
       });
 
-      await handleVote(finalPayload as ISuccessResult, verifyPayload.action, verifyPayload.signal as string);
+      // Pass normalized string
+      await handleVote(finalPayload as ISuccessResult, verifyPayload.action, signal);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
@@ -85,13 +88,12 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // IMPORTANT: server expects payload/action/signal, not "proof"
         body: JSON.stringify({
           pollId: poll.id,
           optionIdx: selectedOption,
           payload,
           action,
-          signal,
+          signal, // <- string
         }),
       });
 
@@ -102,7 +104,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         throw new Error(data.error ?? 'Vote failed');
       }
 
-      // If your API returns totals, keep this; otherwise adjust to your actual response
       if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
         const pollResults: PollWithResults = {
           ...poll,
@@ -114,7 +115,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         };
         setResults(pollResults);
       } else {
-        // Minimal OK path when API just returns { ok: true }
         setResults(null);
       }
     } catch (err: any) {
