@@ -69,11 +69,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // For testing only: allow bypassing single-vote constraint by tweaking nullifier
+    const allowMultiVotes = process.env.TEST_ALLOW_MULTI_VOTES === 'true';
+    const testingNullifier = allowMultiVotes ? `${nullifier_hash}:${Math.random().toString(36).slice(2, 8)}` : nullifier_hash;
+
     const { error: voteError } = await supabase
       .from('vote')
       .insert({
         poll_id: pollId,
-        nullifier_hash: nullifier_hash,
+        nullifier_hash: testingNullifier,
         option_idx: optionIdx,
       });
 
