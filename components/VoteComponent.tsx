@@ -60,7 +60,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       }
 
       console.log('MiniKit verification successful');
-      await handleVote(finalPayload as ISuccessResult);
+      await handleVote(finalPayload as ISuccessResult, action, signal);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
@@ -68,7 +68,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     }
   };
 
-  const handleVote = async (payload: ISuccessResult) => {
+  const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
     if (selectedOption === null) return;
 
     try {
