@@ -32,11 +32,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  // Accept either env key; prefer WORLDCON
-  const rawActionId =
-    process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ??
-    process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ??
-    'unset';
+  const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
 
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
@@ -49,13 +45,9 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      // Normalize to strings for downstream functions
-      const action = String(rawActionId);
-      const signal = String(poll.id);
-
       const verifyPayload: VerifyCommandInput = {
-        action,                      // now definitely a string
-        signal,                      // now definitely a string
+        action: actionId,
+        signal: String(poll.id),
         verification_level: VerificationLevel.Orb,
       };
 
@@ -67,13 +59,8 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         return;
       }
 
-      // Optional debug
-      console.log('MiniKit success payload:', {
-        status: finalPayload.status,
-        verification_level: (finalPayload as any).verification_level,
-      });
-
-      await handleVote(finalPayload as ISuccessResult, action, signal);
+      console.log('MiniKit verification successful');
+      await handleVote(finalPayload as ISuccessResult);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
@@ -81,20 +68,27 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     }
   };
 
-  // action and signal are plain strings now
-  const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
+  const handleVote = async (payload: ISuccessResult) => {
     if (selectedOption === null) return;
 
     try {
+      // Extract only the proof fields needed by the backend
+      const proof = {
+        nullifier_hash: payload.nullifier_hash,
+        merkle_root: payload.merkle_root,
+        proof: payload.proof,
+        verification_level: payload.verification_level,
+      };
+
+      console.log('Submitting vote with proof');
+
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pollId: poll.id,
           optionIdx: selectedOption,
-          payload,
-          action,
-          signal,
+          proof,
         }),
       });
 
@@ -115,8 +109,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           total_votes: data.totalVotes,
         };
         setResults(pollResults);
-      } else {
-        setResults(null);
       }
     } catch (err: any) {
       setError(`Vote submission failed: ${err?.message ?? String(err)}`);
