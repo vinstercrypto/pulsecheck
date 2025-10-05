@@ -32,8 +32,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  const baseActionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
-  const actionId = `${baseActionId}-${poll.id}`;
+  const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
 
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;
@@ -46,7 +45,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
-      const signal = String(poll.id);
+      const signal = `poll-${poll.id}`;
       const verifyPayload: VerifyCommandInput = {
         action: actionId,
         signal: signal,
