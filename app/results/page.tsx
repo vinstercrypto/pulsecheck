@@ -22,6 +22,13 @@ async function getResults(): Promise<PollWithResults[]> {
 
 export default async function ResultsPage() {
     const polls = await getResults();
+    
+    // Debug logging
+    console.log('Results page - Fetched polls:', polls);
+    console.log('Results page - Polls length:', polls.length);
+    if (polls.length > 0) {
+        console.log('Results page - First poll:', JSON.stringify(polls[0], null, 2));
+    }
 
     return (
         <div className="w-full max-w-4xl mx-auto">

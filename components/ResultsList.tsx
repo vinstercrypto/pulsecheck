@@ -48,6 +48,9 @@ const PollResultCard = ({ poll }: { poll: PollWithResults }) => {
   }
   
 export default function ResultsList({ polls }: { polls: PollWithResults[] }) {
+    console.log('ResultsList received polls:', polls);
+    console.log('ResultsList polls length:', polls.length);
+    
     return (
         <div className="space-y-6">
             {polls.map((poll) => (
