@@ -11,17 +11,16 @@ export default function AboutPage() {
         <div className="max-w-3xl mx-auto">
             {/* Donate Section */}
             <div className="bg-brand-gray-900 rounded-lg p-6 mb-6 text-center shadow-lg">
-                <h2 className="text-xl font-semibold text-white mb-2">Support PulseCheck</h2>
-                <p className="text-brand-gray-300 mb-4">
-                    Enjoy daily polls with bot-free voting? Help keep PulseCheck running.
-                </p>
-                <button 
-                    id="donate-button"
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
-                >
-                    ☕ Donate Now
-                </button>
-            </div>
+    <p className="text-brand-gray-300 mb-4">
+        Keeping PulseCheck bot-free and running costs real money. If you find it useful:
+    </p>
+    <button 
+        id="donate-button"
+        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+    >
+        Buy me a coffee (2 WLD)
+    </button>
+</div>
 
             {/* Main About Content */}
             <div className="bg-brand-gray-900 rounded-lg p-6 md:p-8 shadow-lg">

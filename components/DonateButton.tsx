@@ -17,21 +17,21 @@ export default function DonateButton() {
 
       const donatePayload: PayCommandInput = {
         reference: `donation-${Date.now()}`,
-        to: '0xYOUR_WALLET_ADDRESS', // Replace with your actual address
+        to: '0xYOUR_WALLET_ADDRESS', // Replace with your Optimism wallet address
         tokens: [
           {
-            symbol: Tokens.USDC,
-            token_amount: tokenToDecimals(2, Tokens.USDC).toString(), // $2 donation
+            symbol: Tokens.WLD,
+            token_amount: tokenToDecimals(1, Tokens.WLD).toString(), // 1 WLD donation
           },
         ],
-        description: 'Support PulseCheck ☕',
+        description: 'Support PulseCheck',
       };
 
       try {
         const { finalPayload } = await MiniKit.commandsAsync.pay(donatePayload);
         
         if (finalPayload.status === 'success') {
-          alert('Thank you for your support! 🙏');
+          alert('Thank you for your support!');
         } else {
           console.log('Donation cancelled');
         }
