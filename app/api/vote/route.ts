@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const { pollId, optionIdx, proof } = body;
 
   // 1. Validate body
-  if (!pollId || typeof optionIdx !== 'number' || !proof) {
+  if (!pollId || typeof optionIdx !== 'number' || !proof || typeof proof !== 'object') {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
   }
 
@@ -36,7 +36,8 @@ export async function POST(request: Request) {
 
   try {
     // 2. Call World ID Verify v2
-    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+    const actionId =
+      process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ?? process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
     if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");

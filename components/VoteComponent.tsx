@@ -82,7 +82,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   };
 
   // action and signal are plain strings now
-  const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
+  const handleVote = async (proof: ISuccessResult, action: string, signal: string) => {
     if (selectedOption === null) return;
 
     try {
@@ -92,7 +92,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         body: JSON.stringify({
           pollId: poll.id,
           optionIdx: selectedOption,
-          payload,
+          proof,
           action,
           signal,
         }),
