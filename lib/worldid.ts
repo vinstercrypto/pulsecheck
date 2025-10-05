@@ -3,7 +3,7 @@ interface VerifyReply {
   nullifier_hash: string;
 }
 
-export async function verifyProof(proof: any, actionId: string): Promise<VerifyReply> {
+export async function verifyProof(proof: any, actionId: string, hashedSignal?: string): Promise<VerifyReply> {
   const WLD_APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID;
 
   if (!WLD_APP_ID) {
@@ -22,6 +22,7 @@ export async function verifyProof(proof: any, actionId: string): Promise<VerifyR
     proof: proof.proof,
     verification_level: proof.verification_level,
     action: actionId,
+    signal: hashedSignal,
   };
 
   console.log("Sending to World ID:", { 
