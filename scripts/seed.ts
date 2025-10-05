@@ -1,18 +1,13 @@
-import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
-import path from 'path';
+import * as dotenv from 'dotenv';
 
-// Load .env.local file explicitly
-config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing environment variables!');
-  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-  console.error('SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? 'Set' : 'Missing');
-  process.exit(1);
+  throw new Error('Missing Supabase environment variables');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -20,68 +15,87 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function seed() {
   console.log('Starting seed...');
 
-  // Create 14 polls
+  await supabase.from('vote').delete().neq('poll_id', '00000000-0000-0000-0000-000000000000');
+  await supabase.from('poll').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
   const now = new Date();
   const polls = [];
 
-  // 7 closed polls (past week)
-  for (let i = 7; i >= 1; i--) {
-    const start = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const end = new Date(start.getTime() + 20 * 60 * 60 * 1000);
-    
-    polls.push({
-      question: `Sample poll from ${i} days ago?`,
-      options: JSON.stringify(['Yes', 'No', 'Maybe']),
-      start_ts: start.toISOString(),
-      end_ts: end.toISOString(),
-      status: 'closed'
-    });
-  }
-
-  // 1 live poll (today)
-  const liveStart = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-  const liveEnd = new Date(now.getTime() + 22 * 60 * 60 * 1000);
+  // Poll 1 - LIVE
+  const live1Start = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const live1End = new Date(now.getTime() + 22 * 60 * 60 * 1000);
   polls.push({
-    question: 'Do you think AI will transform society in the next 5 years?',
-    options: JSON.stringify(['Definitely', 'Probably', 'Maybe', 'Unlikely', 'No']),
-    start_ts: liveStart.toISOString(),
-    end_ts: liveEnd.toISOString(),
+    question: 'Will AI replace most jobs by 2030?',
+    options: JSON.stringify(['Yes', 'No', 'Unsure']),
+    start_ts: live1Start.toISOString(),
+    end_ts: live1End.toISOString(),
     status: 'live'
   });
 
-  // 6 scheduled polls (future days)
-  for (let i = 1; i <= 6; i++) {
-    const start = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-    const end = new Date(start.getTime() + 20 * 60 * 60 * 1000);
-    
-    polls.push({
-      question: `Upcoming poll ${i} - Sample question?`,
-      options: JSON.stringify(['Option A', 'Option B', 'Option C']),
-      start_ts: start.toISOString(),
-      end_ts: end.toISOString(),
-      status: 'scheduled'
-    });
-  }
+  // Poll 2
+  const upcoming1Start = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const upcoming1End = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  polls.push({
+    question: 'Do you trust self-driving cars?',
+    options: JSON.stringify(['Yes', 'No', 'Not yet']),
+    start_ts: upcoming1Start.toISOString(),
+    end_ts: upcoming1End.toISOString(),
+    status: 'upcoming'
+  });
 
-  const { data, error } = await supabase
+  // Poll 3
+  const upcoming2Start = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  const upcoming2End = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+  polls.push({
+    question: 'Should social media be regulated?',
+    options: JSON.stringify(['Yes', 'No', 'Partially']),
+    start_ts: upcoming2Start.toISOString(),
+    end_ts: upcoming2End.toISOString(),
+    status: 'upcoming'
+  });
+
+  // Poll 4
+  const upcoming3Start = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+  const upcoming3End = new Date(now.getTime() + 96 * 60 * 60 * 1000);
+  polls.push({
+    question: 'Is remote work the future?',
+    options: JSON.stringify(['Yes', 'No', 'Hybrid only']),
+    start_ts: upcoming3Start.toISOString(),
+    end_ts: upcoming3End.toISOString(),
+    status: 'upcoming'
+  });
+
+  // Poll 5
+  const upcoming4Start = new Date(now.getTime() + 96 * 60 * 60 * 1000);
+  const upcoming4End = new Date(now.getTime() + 120 * 60 * 60 * 1000);
+  polls.push({
+    question: 'Will crypto become mainstream?',
+    options: JSON.stringify(['Yes', 'No', 'Already is']),
+    start_ts: upcoming4Start.toISOString(),
+    end_ts: upcoming4End.toISOString(),
+    status: 'upcoming'
+  });
+
+  const { data: insertedPolls, error } = await supabase
     .from('poll')
     .insert(polls)
     .select();
 
   if (error) {
-    console.error('Error seeding polls:', error);
-    process.exit(1);
+    console.error('Error inserting polls:', error);
+    throw error;
   }
 
-  console.log(`Successfully created ${data?.length} polls`);
-  
-  // Display the live poll
-  const livePoll = data?.find(p => p.status === 'live');
-  if (livePoll) {
-    console.log('\nLive poll:', livePoll.question);
-  }
-  
-  process.exit(0);
+  console.log(`Successfully seeded ${insertedPolls?.length} polls`);
+  console.log('Live poll:', insertedPolls?.[0]?.question);
 }
 
-seed();
+seed()
+  .then(() => {
+    console.log('Seed completed');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Seed failed:', error);
+    process.exit(1);
+  });
