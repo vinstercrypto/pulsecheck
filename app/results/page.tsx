@@ -1,19 +1,34 @@
-
 import ResultsList from "@/components/ResultsList";
 import { PollWithResults } from "@/lib/types";
+import { supabase } from '@/lib/db';
 
 async function getResults(): Promise<PollWithResults[]> {
-    const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
     try {
-        // Fix: Cast fetch options to `any` to allow Next.js-specific `next` property
-        // and prevent TypeScript error "Property 'next' does not exist in type 'RequestInit'".
-        const res = await fetch(`${host}/api/results?days=7`, {
-            next: { revalidate: 60 } // Revalidate every minute
-        } as any);
-        if (!res.ok) {
+        const days = 7;
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+
+        const { data, error } = await supabase
+            .from('poll_results')
+            .select('*')
+            .in('status', ['live', 'closed'])
+            .gt('total_votes', 0)
+            .order('start_ts', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching results:', error);
             return [];
         }
-        return res.json();
+
+        // Parse options from JSON string to array
+        const parsedData = data?.map(poll => ({
+            ...poll,
+            id: poll.poll_id, // Map poll_id to id if needed
+            options: typeof poll.options === 'string' ? JSON.parse(poll.options) : poll.options
+        })) || [];
+
+        console.log('Results page - Fetched polls:', parsedData.length);
+        return parsedData;
     } catch (error) {
         console.error("Failed to fetch results:", error);
         return [];
@@ -22,13 +37,6 @@ async function getResults(): Promise<PollWithResults[]> {
 
 export default async function ResultsPage() {
     const polls = await getResults();
-    
-    // Debug logging
-    console.log('Results page - Fetched polls:', polls);
-    console.log('Results page - Polls length:', polls.length);
-    if (polls.length > 0) {
-        console.log('Results page - First poll:', JSON.stringify(polls[0], null, 2));
-    }
 
     return (
         <div className="w-full max-w-4xl mx-auto">
@@ -46,5 +54,4 @@ export default async function ResultsPage() {
     );
 }
 
-// Enable dynamic rendering
 export const dynamic = 'force-dynamic';
