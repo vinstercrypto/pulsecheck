@@ -62,6 +62,8 @@ export async function POST(request: Request) {
     if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");
+    console.log("Action ID:", actionId);
+    console.log("Signal:", signal);
     const { isHuman, nullifier_hash } = await verifyProof(proof, actionId, signal);
 
     if (!isHuman) {

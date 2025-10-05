@@ -61,6 +61,9 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       }
 
       console.log('MiniKit verification successful');
+      console.log('Frontend - Action ID:', actionId);
+      console.log('Frontend - Signal:', signal);
+      console.log('Frontend - Payload:', finalPayload);
       await handleVote(finalPayload as ISuccessResult, actionId, signal);
     } catch (err: any) {
       console.error('Verification error:', err);

@@ -13,6 +13,7 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
   }
 
   console.log("=== WORLD ID VERIFY DEBUG ===");
+  console.log("WLD_APP_ID:", WLD_APP_ID);
   console.log("Action:", actionId);
   console.log("Signal:", signal);
   console.log("Payload keys:", Object.keys(payload));
@@ -23,6 +24,13 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
     const verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal) as IVerifyResponse;
     
     console.log("World ID verification result:", verifyRes);
+    console.log("Verification success:", verifyRes.success);
+    console.log("Verification details:", JSON.stringify(verifyRes, null, 2));
+
+    if (!verifyRes.success) {
+      console.error("Verification failed with details:", verifyRes);
+      throw new Error(`World ID verification failed: ${JSON.stringify(verifyRes)}`);
+    }
 
     return {
       isHuman: verifyRes.success === true,
