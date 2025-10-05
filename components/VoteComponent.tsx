@@ -45,9 +45,10 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setError(null);
 
     try {
+      const signal = String(poll.id);
       const verifyPayload: VerifyCommandInput = {
         action: actionId,
-        signal: String(poll.id),
+        signal: signal,
         verification_level: VerificationLevel.Orb,
       };
 
@@ -60,7 +61,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       }
 
       console.log('MiniKit verification successful');
-      await handleVote(finalPayload as ISuccessResult, action, signal);
+      await handleVote(finalPayload as ISuccessResult, actionId, signal);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
