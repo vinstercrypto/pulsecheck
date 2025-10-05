@@ -3,6 +3,8 @@ import { verifyCloudProof, IVerifyResponse, ISuccessResult } from '@worldcoin/mi
 interface VerifyReply {
   isHuman: boolean;
   nullifier_hash: string;
+  code?: string;
+  detail?: string;
 }
 
 export async function verifyProof(payload: ISuccessResult, actionId: string, signal?: string): Promise<VerifyReply> {
@@ -12,26 +14,31 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
     throw new Error("WLD_APP_ID not configured");
   }
 
-    console.log("WLD_APP_ID:", WLD_APP_ID);
+  console.log("=== WORLD ID VERIFY DEBUG ===");
+  console.log("WLD_APP_ID:", WLD_APP_ID);
   console.log("Action:", actionId);
   console.log("Signal:", signal);
-  console.log("Payload keys:", Object.keys(payload));
   console.log("Payload:", JSON.stringify(payload, null, 2));
 
   try {
-    const verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal) as IVerifyResponse;
-    console.log("World ID verification result:", verifyRes);
+    const verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal);
+    console.log("World ID verification result:", JSON.stringify(verifyRes, null, 2));
 
-    // Return structured result; do NOT throw raw error bodies to callers
-    return {
-      isHuman: verifyRes.success === true,
-      nullifier_hash: payload.nullifier_hash,
-      // pass through useful context for routing decisions
-      ...(verifyRes.success ? {} : { code: (verifyRes as any).code, detail: (verifyRes as any).detail }),
-    } as { isHuman: boolean; nullifier_hash: string; code?: string; detail?: string };
+    if (verifyRes.success) {
+      return {
+        isHuman: true,
+        nullifier_hash: payload.nullifier_hash,
+      };
+    } else {
+      return {
+        isHuman: false,
+        nullifier_hash: payload.nullifier_hash,
+        code: (verifyRes as any).code,
+        detail: (verifyRes as any).detail,
+      };
+    }
   } catch (error) {
     console.error("World ID verification error:", error);
-    // Surface a generic failure without leaking third-party response details
     return {
       isHuman: false,
       nullifier_hash: payload.nullifier_hash,
