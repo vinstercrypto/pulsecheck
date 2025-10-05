@@ -5,7 +5,7 @@ import { Poll } from '@/lib/types';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { pollId, optionIdx, proof } = body;
+  const { pollId, optionIdx, proof, signal, action } = body;
 
   if (!pollId || typeof optionIdx !== 'number' || !proof) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
@@ -43,13 +43,26 @@ export async function POST(request: Request) {
   }
 
   try {
-    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
-    if (!actionId) throw new Error("Action ID is not configured.");
+    const expectedAction = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+    if (!expectedAction) throw new Error("Action ID is not configured.");
+
+    if (action && action !== expectedAction) {
+      console.warn('Mismatched action from client', { action, expectedAction });
+      return NextResponse.json({ error: 'Invalid verification action.' }, { status: 400 });
+    }
+
+    const actionId = expectedAction;
 
     console.log("Server: Verifying proof...");
-    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId);
+    const { isHuman, nullifier_hash, code } = await verifyProof(proof, actionId, signal);
 
     if (!isHuman) {
+      if (code === 'max_verifications_reached') {
+        return NextResponse.json(
+          { error: 'You have already verified for this poll. Please come back tomorrow.' },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         { error: 'Verification failed. Please verify in World App and try again.' },
         { status: 403 }
