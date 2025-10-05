@@ -6,7 +6,7 @@ interface VerifyReply {
 }
 
 export async function verifyProof(payload: ISuccessResult, actionId: string, signal?: string): Promise<VerifyReply> {
-  const WLD_APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID;
+  const WLD_APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`;
 
   if (!WLD_APP_ID) {
     throw new Error("WLD_APP_ID not configured");
