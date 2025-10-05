@@ -3,10 +3,36 @@ import { supabase } from '@/lib/db';
 import { verifyProof } from '@/lib/worldid';
 import { NextResponse } from 'next/server';
 import { Poll } from '@/lib/types';
+import { hashSignal } from '@/lib/world';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { pollId, optionIdx, proof } = body;
+  const {
+    pollId,
+    optionIdx,
+    proof: proofFromBody,
+    payload,
+    action: actionFromBody,
+    signal: signalFromBody,
+  } = body;
+
+  const actionId =
+    typeof actionFromBody === 'string' && actionFromBody.trim().length > 0
+      ? actionFromBody
+      : process.env.NEXT_PUBLIC_WORLDCON_ACTION_ID ?? process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+
+  if (!actionId) {
+    return NextResponse.json({ error: 'Action ID is not configured.' }, { status: 500 });
+  }
+
+  const signal =
+    typeof signalFromBody === 'string' && signalFromBody.trim().length > 0
+      ? signalFromBody
+      : process.env.NEXT_PUBLIC_WLD_SIGNAL_VOTE;
+
+  const hashedSignal = hashSignal(signal);
+
+  const proof = proofFromBody ?? payload;
 
   // 1. Validate body
   if (!pollId || typeof optionIdx !== 'number' || !proof) {
@@ -36,11 +62,8 @@ export async function POST(request: Request) {
 
   try {
     // 2. Call World ID Verify v2
-    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
-    if (!actionId) throw new Error("Action ID is not configured.");
-
     console.log("Server: Verifying proof...");
-    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId);
+    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId, hashedSignal);
 
     if (!isHuman) {
       console.log(`Verification failed for poll ${pollId}: Not a human.`);
