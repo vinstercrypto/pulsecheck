@@ -12,32 +12,31 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
     throw new Error("WLD_APP_ID not configured");
   }
 
-  console.log("=== WORLD ID VERIFY DEBUG ===");
-  console.log("WLD_APP_ID:", WLD_APP_ID);
+    console.log("WLD_APP_ID:", WLD_APP_ID);
   console.log("Action:", actionId);
   console.log("Signal:", signal);
   console.log("Payload keys:", Object.keys(payload));
   console.log("Payload:", JSON.stringify(payload, null, 2));
 
   try {
-    // Use the official verifyCloudProof function from MiniKit
     const verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal) as IVerifyResponse;
-    
     console.log("World ID verification result:", verifyRes);
-    console.log("Verification success:", verifyRes.success);
-    console.log("Verification details:", JSON.stringify(verifyRes, null, 2));
 
-    if (!verifyRes.success) {
-      console.error("Verification failed with details:", verifyRes);
-      throw new Error(`World ID verification failed: ${JSON.stringify(verifyRes)}`);
-    }
-
+    // Return structured result; do NOT throw raw error bodies to callers
     return {
       isHuman: verifyRes.success === true,
       nullifier_hash: payload.nullifier_hash,
-    };
+      // pass through useful context for routing decisions
+      ...(verifyRes.success ? {} : { code: (verifyRes as any).code, detail: (verifyRes as any).detail }),
+    } as { isHuman: boolean; nullifier_hash: string; code?: string; detail?: string };
   } catch (error) {
     console.error("World ID verification error:", error);
-    throw new Error(`World ID verification failed: ${error}`);
+    // Surface a generic failure without leaking third-party response details
+    return {
+      isHuman: false,
+      nullifier_hash: payload.nullifier_hash,
+      code: 'verification_error',
+      detail: 'Verification service error',
+    };
   }
 }

@@ -56,23 +56,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'This poll has closed.' }, { status: 403 });
   }
 
-  try {
-    // 2. Call World ID Verify v2
+    try {
     const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
     if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");
     console.log("Action ID:", actionId);
     console.log("Signal:", signal);
-    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId, signal);
+    const { isHuman, nullifier_hash, code } = await verifyProof(proof, actionId, signal);
 
     if (!isHuman) {
-      console.log(`Verification failed for poll ${pollId}: Not a human.`);
-      return NextResponse.json({ error: 'Verification failed. You are not a human.' }, { status: 403 });
+      if (code === 'max_verifications_reached') {
+        // User-friendly message, no internal payload leak
+        return NextResponse.json(
+          { error: 'You have already verified for this poll. Please come back tomorrow.' },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: 'Verification failed. Please verify in World App and try again.' },
+        { status: 403 }
+      );
     }
     console.log(`Server: Proof verified. Nullifier: ${nullifier_hash}`);
 
-    // 4. Upsert vote
     const { error: voteError } = await supabase
       .from('vote')
       .insert({
@@ -82,16 +90,15 @@ export async function POST(request: Request) {
       });
 
     if (voteError) {
-      if (voteError.code === '23505') { // unique constraint violation
-        console.log(`Conflict: Duplicate vote for poll ${pollId} by nullifier ${nullifier_hash}`);
-        return NextResponse.json({ error: 'You have already voted in this poll.' }, { status: 409 });
+      if (voteError.code === '23505') {
+        return NextResponse.json(
+          { error: 'You have already voted in this poll.' },
+          { status: 409 }
+        );
       }
       throw voteError;
     }
 
-    console.log(`Success: Vote cast for poll ${pollId}`);
-
-    // 5. Return updated aggregates
     const { data: results, error: resultsError } = await supabase
       .from('poll_results')
       .select('counts, total_votes')
@@ -99,29 +106,23 @@ export async function POST(request: Request) {
       .single();
 
     if (resultsError || !results) {
-        throw new Error('Could not fetch results after voting.');
-    }
-
-    // Ensure options is still an array before mapping
-    if (!Array.isArray(options)) {
-        console.error('Options is not an array when mapping:', options);
-        throw new Error('Options is not an array');
+      throw new Error('Could not fetch results after voting.');
     }
 
     const totalsPerOption = options.map((_, index) => {
-        const found = results.counts.find((c: { option_idx: number }) => c.option_idx === index);
-        return found ? found.count : 0;
+      const found = results.counts.find((c: { option_idx: number }) => c.option_idx === index);
+      return found ? found.count : 0;
     });
 
-    return NextResponse.json({ 
-        message: 'Vote successful',
-        totalsPerOption: totalsPerOption,
-        totalVotes: results.total_votes,
+    return NextResponse.json({
+      message: 'Vote successful',
+      totalsPerOption,
+      totalVotes: results.total_votes,
     });
-
   } catch (error) {
     console.error('An error occurred during vote processing:', error);
-    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return NextResponse.json({ error: `Vote submission failed: ${message}` }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Vote submission failed. Please try again later.' },
+      { status: 500 }
+    );
   }
-}
