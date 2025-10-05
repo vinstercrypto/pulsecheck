@@ -24,7 +24,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Poll not found.' }, { status: 404 });
   }
 
-  if (optionIdx < 0 || optionIdx >= poll.options.length) {
+  // Debug poll structure
+  console.log('Poll data:', poll);
+  console.log('Poll options type:', typeof poll.options);
+  console.log('Poll options:', poll.options);
+
+  // Parse options if it's a string (from JSON.stringify in seed)
+  let options = poll.options;
+  if (typeof poll.options === 'string') {
+    try {
+      options = JSON.parse(poll.options);
+    } catch (error) {
+      console.error('Failed to parse poll options:', error);
+      return NextResponse.json({ error: 'Invalid poll options format.' }, { status: 500 });
+    }
+  }
+
+  // Ensure options is an array
+  if (!Array.isArray(options)) {
+    console.error('Poll options is not an array:', options);
+    return NextResponse.json({ error: 'Invalid poll data structure.' }, { status: 500 });
+  }
+
+  if (optionIdx < 0 || optionIdx >= options.length) {
     return NextResponse.json({ error: 'Invalid option index.' }, { status: 400 });
   }
   
@@ -78,7 +100,13 @@ export async function POST(request: Request) {
         throw new Error('Could not fetch results after voting.');
     }
 
-    const totalsPerOption = poll.options.map((_, index) => {
+    // Ensure options is still an array before mapping
+    if (!Array.isArray(options)) {
+        console.error('Options is not an array when mapping:', options);
+        throw new Error('Options is not an array');
+    }
+
+    const totalsPerOption = options.map((_, index) => {
         const found = results.counts.find((c: { option_idx: number }) => c.option_idx === index);
         return found ? found.count : 0;
     });
