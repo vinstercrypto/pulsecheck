@@ -32,7 +32,8 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
-  const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
+  const baseActionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
+  const actionId = `${baseActionId}-${poll.id}`;
 
   const handleVerifyClick = async () => {
     if (selectedOption === null) return;

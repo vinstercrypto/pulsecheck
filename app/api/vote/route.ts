@@ -58,7 +58,8 @@ export async function POST(request: Request) {
 
   try {
     // 2. Call World ID Verify v2
-    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+    const baseActionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE ?? 'vote';
+    const actionId = `${baseActionId}-${pollId}`;
     if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");
