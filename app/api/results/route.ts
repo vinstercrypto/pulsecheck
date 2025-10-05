@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     .select('*')
     .in('status', ['live', 'closed'])
     .gt('total_votes', 0)
-    .gte('end_ts', cutoffDate.toISOString())
+    .gte('start_ts', cutoffDate.toISOString())
     .order('start_ts', { ascending: false });
 
   if (error) {
@@ -21,5 +21,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch results' }, { status: 500 });
   }
 
-  return NextResponse.json(data || []);
+  // Parse the options JSON string into an array
+  const parsedData = data?.map(poll => ({
+    ...poll,
+    options: typeof poll.options === 'string' ? JSON.parse(poll.options) : poll.options
+  })) || [];
+
+  return NextResponse.json(parsedData);
 }
