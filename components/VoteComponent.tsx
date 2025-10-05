@@ -89,6 +89,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           pollId: poll.id,
           optionIdx: selectedOption,
           proof,
+          signal,
         }),
       });
 

@@ -6,7 +6,7 @@ import { Poll } from '@/lib/types';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { pollId, optionIdx, proof } = body;
+  const { pollId, optionIdx, proof, signal } = body;
 
   // 1. Validate body
   if (!pollId || typeof optionIdx !== 'number' || !proof) {
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");
-    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId);
+    const { isHuman, nullifier_hash } = await verifyProof(proof, actionId, signal);
 
     if (!isHuman) {
       console.log(`Verification failed for poll ${pollId}: Not a human.`);
