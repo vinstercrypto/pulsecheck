@@ -13,6 +13,7 @@ async function getResults(): Promise<PollWithResults[]> {
             .select('*')
             .in('status', ['live', 'closed'])
             .gt('total_votes', 0)
+            .gte('start_ts', cutoffDate.toISOString())
             .order('start_ts', { ascending: false });
 
         if (error) {
@@ -27,7 +28,6 @@ async function getResults(): Promise<PollWithResults[]> {
             options: typeof poll.options === 'string' ? JSON.parse(poll.options) : poll.options
         })) || [];
 
-        console.log('Results page - Fetched polls:', parsedData.length);
         return parsedData;
     } catch (error) {
         console.error("Failed to fetch results:", error);

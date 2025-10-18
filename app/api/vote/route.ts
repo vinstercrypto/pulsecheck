@@ -13,9 +13,9 @@ export async function POST(request: Request) {
 
   const { data: poll, error: pollError } = await supabase
     .from('poll')
-    .select('options, end_ts')
+    .select('options, start_ts, end_ts')
     .eq('id', pollId)
-    .single<Pick<Poll, 'options' | 'end_ts'>>();
+    .single<Pick<Poll, 'options' | 'start_ts' | 'end_ts'>>();
 
   if (pollError || !poll) {
     return NextResponse.json({ error: 'Poll not found.' }, { status: 404 });
@@ -38,7 +38,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid option index.' }, { status: 400 });
   }
   
-  if (new Date() >= new Date(poll.end_ts)) {
+  // Timebox validation: vote only when now() ∈ [start_ts, end_ts)
+  const now = new Date();
+  const start = new Date(poll.start_ts);
+  const end = new Date(poll.end_ts);
+  
+  if (now < start) {
+    return NextResponse.json({ error: 'This poll has not started yet.' }, { status: 403 });
+  }
+  
+  if (now >= end) {
     return NextResponse.json({ error: 'This poll has closed.' }, { status: 403 });
   }
 
@@ -69,15 +78,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // For testing only: allow bypassing single-vote constraint by tweaking nullifier
-    const allowMultiVotes = process.env.TEST_ALLOW_MULTI_VOTES === 'true';
-    const testingNullifier = allowMultiVotes ? `${nullifier_hash}:${Math.random().toString(36).slice(2, 8)}` : nullifier_hash;
-
+    // Production rule: enforce one-human-one-vote via composite PK (poll_id, nullifier_hash)
     const { error: voteError } = await supabase
       .from('vote')
       .insert({
         poll_id: pollId,
-        nullifier_hash: testingNullifier,
+        nullifier_hash: nullifier_hash,
         option_idx: optionIdx,
       });
 

@@ -2,59 +2,73 @@ import { supabase } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-  console.log('SERVICE_KEY length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length);
-  
   const now = new Date().toISOString();
+  
+  // Get DAILY_POLL_COUNT from environment (default: 1, allowed: 1 or 2)
+  const dailyPollCountRaw = process.env.DAILY_POLL_COUNT || '1';
+  const dailyPollCount = parseInt(dailyPollCountRaw);
+  
+  if (![1, 2].includes(dailyPollCount)) {
+    console.error('DAILY_POLL_COUNT must be 1 or 2, got:', dailyPollCountRaw);
+    return NextResponse.json({ error: 'Invalid configuration' }, { status: 500 });
+  }
 
-  // Find a poll that is currently live
-  const { data: livePoll, error: liveError } = await supabase
+  // Get the start of today in UTC
+  const todayStart = new Date(now);
+  todayStart.setUTCHours(0, 0, 0, 0);
+  
+  const tomorrowStart = new Date(todayStart);
+  tomorrowStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
+
+  // Find polls that are live right now (start_ts <= now < end_ts)
+  // and started today, limited by DAILY_POLL_COUNT
+  const { data: livePolls, error: liveError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'live')
     .lte('start_ts', now)
     .gte('end_ts', now)
-    .limit(1)
-    .single();
+    .gte('start_ts', todayStart.toISOString())
+    .lt('start_ts', tomorrowStart.toISOString())
+    .order('start_ts', { ascending: true })
+    .limit(dailyPollCount);
 
-  if (liveError && liveError.code !== 'PGRST116') {
-  console.error('Error fetching live poll:', liveError);
-  console.error('Error code:', liveError.code);
-  console.error('Error message:', liveError.message);
-  console.error('Error details:', JSON.stringify(liveError, null, 2));
-  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-}
-
-  if (livePoll) {
-    const parsedPoll = {
-      ...livePoll,
-      options: typeof livePoll.options === 'string' 
-        ? JSON.parse(livePoll.options) 
-        : livePoll.options
-    };
-    return NextResponse.json({ poll: parsedPoll });
+  if (liveError) {
+    console.error('Error fetching live polls:', liveError);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
-  // If no live poll, find the next scheduled poll
-  const { data: scheduledPoll, error: scheduledError } = await supabase
+  if (livePolls && livePolls.length > 0) {
+    const parsedPolls = livePolls.map(poll => ({
+      ...poll,
+      options: typeof poll.options === 'string' 
+        ? JSON.parse(poll.options) 
+        : poll.options
+    }));
+    return NextResponse.json({ polls: parsedPolls });
+  }
+
+  // If no live polls, find the next scheduled poll(s) for today
+  const { data: scheduledPolls, error: scheduledError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'scheduled')
     .gt('start_ts', now)
+    .gte('start_ts', todayStart.toISOString())
+    .lt('start_ts', tomorrowStart.toISOString())
     .order('start_ts', { ascending: true })
-    .limit(1)
-    .single();
+    .limit(dailyPollCount);
 
-  if (scheduledError && scheduledError.code !== 'PGRST116') {
-    console.error('Error fetching scheduled poll:', scheduledError);
+  if (scheduledError) {
+    console.error('Error fetching scheduled polls:', scheduledError);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
-  if (scheduledPoll) {
-    const startsInSeconds = (new Date(scheduledPoll.start_ts).getTime() - new Date().getTime()) / 1000;
-    return NextResponse.json({ poll: null, starts_in_seconds: startsInSeconds });
+  if (scheduledPolls && scheduledPolls.length > 0) {
+    const nextPoll = scheduledPolls[0];
+    const startsInSeconds = (new Date(nextPoll.start_ts).getTime() - new Date().getTime()) / 1000;
+    return NextResponse.json({ polls: [], starts_in_seconds: startsInSeconds });
   }
   
-  return NextResponse.json({ poll: null });
+  return NextResponse.json({ polls: [] });
 }

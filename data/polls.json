@@ -1,0 +1,373 @@
+[
+  {
+    "question": "Will AI replace most jobs by 2030?",
+    "options": ["Yes", "No", "Unsure"]
+  },
+  {
+    "question": "Should remote work become the default for office jobs?",
+    "options": ["Yes", "No", "Depends on the role"]
+  },
+  {
+    "question": "Do you support a 4-day work week?",
+    "options": ["Yes", "No", "Need more details"]
+  },
+  {
+    "question": "Is cryptocurrency the future of money?",
+    "options": ["Yes", "No", "Maybe"]
+  },
+  {
+    "question": "Should voting be mandatory?",
+    "options": ["Yes", "No", "Undecided"]
+  },
+  {
+    "question": "Do you believe in extraterrestrial life?",
+    "options": ["Yes", "No", "Not sure"]
+  },
+  {
+    "question": "Should social media be regulated more strictly?",
+    "options": ["Yes", "No", "Depends"]
+  },
+  {
+    "question": "Is universal basic income a good idea?",
+    "options": ["Yes", "No", "Need more research"]
+  },
+  {
+    "question": "Will electric vehicles replace gas cars by 2035?",
+    "options": ["Yes", "No", "Partially"]
+  },
+  {
+    "question": "Should college education be free?",
+    "options": ["Yes", "No", "Only for some fields"]
+  },
+  {
+    "question": "Do you trust AI-generated content?",
+    "options": ["Yes", "No", "Sometimes"]
+  },
+  {
+    "question": "Should internet access be a human right?",
+    "options": ["Yes", "No", "Unsure"]
+  },
+  {
+    "question": "Is climate change the biggest threat to humanity?",
+    "options": ["Yes", "No", "One of many"]
+  },
+  {
+    "question": "Should governments have access to encrypted messages?",
+    "options": ["Yes", "No", "Only with warrant"]
+  },
+  {
+    "question": "Will humans colonize Mars in your lifetime?",
+    "options": ["Yes", "No", "Maybe"]
+  },
+  {
+    "question": "Should billionaires exist?",
+    "options": ["Yes", "No", "With wealth cap"]
+  },
+  {
+    "question": "Is privacy dead in the digital age?",
+    "options": ["Yes", "No", "We can still fight for it"]
+  },
+  {
+    "question": "Should AI be allowed to make judicial decisions?",
+    "options": ["Yes", "No", "Only as advisory"]
+  },
+  {
+    "question": "Do you support nuclear energy?",
+    "options": ["Yes", "No", "Need safer tech"]
+  },
+  {
+    "question": "Should there be term limits for all politicians?",
+    "options": ["Yes", "No", "Depends on position"]
+  },
+  {
+    "question": "Will cash become obsolete?",
+    "options": ["Yes", "No", "Not completely"]
+  },
+  {
+    "question": "Should corporations have the same rights as people?",
+    "options": ["Yes", "No", "Limited rights"]
+  },
+  {
+    "question": "Is work-life balance achievable in modern society?",
+    "options": ["Yes", "No", "Depends on career"]
+  },
+  {
+    "question": "Should genetic engineering be used on humans?",
+    "options": ["Yes", "No", "Only for diseases"]
+  },
+  {
+    "question": "Will traditional banks exist in 20 years?",
+    "options": ["Yes", "No", "In different form"]
+  },
+  {
+    "question": "Should companies monitor employee productivity?",
+    "options": ["Yes", "No", "With transparency"]
+  },
+  {
+    "question": "Is the Metaverse the future of social interaction?",
+    "options": ["Yes", "No", "Just a fad"]
+  },
+  {
+    "question": "Should AI-generated art be copyrightable?",
+    "options": ["Yes", "No", "Depends"]
+  },
+  {
+    "question": "Will quantum computing revolutionize technology?",
+    "options": ["Yes", "No", "Eventually"]
+  },
+  {
+    "question": "Should personal data be treated as property you can sell?",
+    "options": ["Yes", "No", "With regulations"]
+  },
+  {
+    "question": "Is democracy the best form of government?",
+    "options": ["Yes", "No", "Depends on context"]
+  },
+  {
+    "question": "Should video games be considered art?",
+    "options": ["Yes", "No", "Some of them"]
+  },
+  {
+    "question": "Will lab-grown meat replace traditional meat?",
+    "options": ["Yes", "No", "Coexist"]
+  },
+  {
+    "question": "Should children under 13 be allowed on social media?",
+    "options": ["Yes", "No", "With parental control"]
+  },
+  {
+    "question": "Is space exploration worth the cost?",
+    "options": ["Yes", "No", "Depends on goals"]
+  },
+  {
+    "question": "Should there be age limits for political leaders?",
+    "options": ["Yes", "No", "Term limits instead"]
+  },
+  {
+    "question": "Will autonomous vehicles reduce traffic accidents?",
+    "options": ["Yes", "No", "Not significantly"]
+  },
+  {
+    "question": "Should athletes be allowed to use performance enhancers?",
+    "options": ["Yes", "No", "Only safe ones"]
+  },
+  {
+    "question": "Is homeschooling as effective as traditional schooling?",
+    "options": ["Yes", "No", "Depends on execution"]
+  },
+  {
+    "question": "Should plastic be banned globally?",
+    "options": ["Yes", "No", "Only single-use"]
+  },
+  {
+    "question": "Will brain-computer interfaces become mainstream?",
+    "options": ["Yes", "No", "Not in near future"]
+  },
+  {
+    "question": "Should voting age be lowered to 16?",
+    "options": ["Yes", "No", "Maybe"]
+  },
+  {
+    "question": "Is globalization good for humanity?",
+    "options": ["Yes", "No", "Mixed results"]
+  },
+  {
+    "question": "Should news media be government-funded?",
+    "options": ["Yes", "No", "Partially"]
+  },
+  {
+    "question": "Will 3D printing revolutionize manufacturing?",
+    "options": ["Yes", "No", "Only certain industries"]
+  },
+  {
+    "question": "Should historical monuments be removed if controversial?",
+    "options": ["Yes", "No", "Move to museums"]
+  },
+  {
+    "question": "Is artificial meat healthier than real meat?",
+    "options": ["Yes", "No", "About the same"]
+  },
+  {
+    "question": "Should companies be required to disclose AI usage?",
+    "options": ["Yes", "No", "Depends on context"]
+  },
+  {
+    "question": "Will cities become obsolete with remote work?",
+    "options": ["Yes", "No", "They'll adapt"]
+  },
+  {
+    "question": "Should there be limits on CEO-to-worker pay ratios?",
+    "options": ["Yes", "No", "Let market decide"]
+  },
+  {
+    "question": "Is online education as good as in-person?",
+    "options": ["Yes", "No", "Depends on subject"]
+  },
+  {
+    "question": "Should deepfakes be illegal?",
+    "options": ["Yes", "No", "Only malicious ones"]
+  },
+  {
+    "question": "Will augmented reality replace smartphones?",
+    "options": ["Yes", "No", "Complement them"]
+  },
+  {
+    "question": "Should companies be carbon-neutral by law?",
+    "options": ["Yes", "No", "Incentivize not mandate"]
+  },
+  {
+    "question": "Is working from home more productive?",
+    "options": ["Yes", "No", "Depends on person"]
+  },
+  {
+    "question": "Should tipping culture be abolished?",
+    "options": ["Yes", "No", "Better wages instead"]
+  },
+  {
+    "question": "Will fusion energy solve our energy crisis?",
+    "options": ["Yes", "No", "Too far away"]
+  },
+  {
+    "question": "Should anonymity be allowed on the internet?",
+    "options": ["Yes", "No", "With restrictions"]
+  },
+  {
+    "question": "Is cancel culture harmful or helpful?",
+    "options": ["Harmful", "Helpful", "Both"]
+  },
+  {
+    "question": "Should algorithmic trading be banned?",
+    "options": ["Yes", "No", "More regulation"]
+  },
+  {
+    "question": "Will vertical farming feed the world?",
+    "options": ["Yes", "No", "Help but not solve"]
+  },
+  {
+    "question": "Should internet be decentralized like Web3 promises?",
+    "options": ["Yes", "No", "Partially"]
+  },
+  {
+    "question": "Is fast fashion destroying the planet?",
+    "options": ["Yes", "No", "Significant contributor"]
+  },
+  {
+    "question": "Should AI have rights?",
+    "options": ["Yes", "No", "Not yet"]
+  },
+  {
+    "question": "Will we achieve immortality through technology?",
+    "options": ["Yes", "No", "Not for centuries"]
+  },
+  {
+    "question": "Should governments mandate renewable energy?",
+    "options": ["Yes", "No", "Gradual transition"]
+  },
+  {
+    "question": "Is streaming better than owning media?",
+    "options": ["Yes", "No", "Each has benefits"]
+  },
+  {
+    "question": "Should facial recognition be banned in public?",
+    "options": ["Yes", "No", "With strict oversight"]
+  },
+  {
+    "question": "Will printed books become obsolete?",
+    "options": ["Yes", "No", "Always have niche"]
+  },
+  {
+    "question": "Should corporations pay for environmental damage?",
+    "options": ["Yes", "No", "Based on impact"]
+  },
+  {
+    "question": "Is shorter attention span a real problem?",
+    "options": ["Yes", "No", "Just different"]
+  },
+  {
+    "question": "Should all drugs be decriminalized?",
+    "options": ["Yes", "No", "Only some"]
+  },
+  {
+    "question": "Will we see human cloning in our lifetime?",
+    "options": ["Yes", "No", "Hope not"]
+  },
+  {
+    "question": "Should housing be a guaranteed human right?",
+    "options": ["Yes", "No", "Basic shelter yes"]
+  },
+  {
+    "question": "Is consumerism destroying society?",
+    "options": ["Yes", "No", "It's complicated"]
+  },
+  {
+    "question": "Should politicians be required to pass competency tests?",
+    "options": ["Yes", "No", "Slippery slope"]
+  },
+  {
+    "question": "Will desalination solve water scarcity?",
+    "options": ["Yes", "No", "Partially"]
+  },
+  {
+    "question": "Should all code be open source?",
+    "options": ["Yes", "No", "Depends on type"]
+  },
+  {
+    "question": "Is traditional education becoming obsolete?",
+    "options": ["Yes", "No", "Needs reform"]
+  },
+  {
+    "question": "Should microtransactions in games be regulated?",
+    "options": ["Yes", "No", "Age restrictions"]
+  },
+  {
+    "question": "Will humans merge with AI?",
+    "options": ["Yes", "No", "Eventually"]
+  },
+  {
+    "question": "Should companies be worker-owned cooperatives?",
+    "options": ["Yes", "No", "Option not mandate"]
+  },
+  {
+    "question": "Is traditional marriage still relevant?",
+    "options": ["Yes", "No", "Evolving concept"]
+  },
+  {
+    "question": "Should gene therapy be available to everyone?",
+    "options": ["Yes", "No", "Needs regulation"]
+  },
+  {
+    "question": "Will paper currency exist in 2050?",
+    "options": ["Yes", "No", "Rare but exists"]
+  },
+  {
+    "question": "Should social credit systems be implemented globally?",
+    "options": ["Yes", "No", "Too dystopian"]
+  },
+  {
+    "question": "Is gig economy good for workers?",
+    "options": ["Yes", "No", "Needs protection"]
+  },
+  {
+    "question": "Should we terraform other planets?",
+    "options": ["Yes", "No", "Fix Earth first"]
+  },
+  {
+    "question": "Will subscription models replace ownership entirely?",
+    "options": ["Yes", "No", "Balanced mix"]
+  },
+  {
+    "question": "Should algorithms be explainable by law?",
+    "options": ["Yes", "No", "For critical systems"]
+  },
+  {
+    "question": "Is meditation as effective as medication for anxiety?",
+    "options": ["Yes", "No", "Complementary"]
+  },
+  {
+    "question": "Should there be a maximum wealth limit?",
+    "options": ["Yes", "No", "Progressive taxation"]
+  }
+]
+
+
+

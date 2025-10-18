@@ -160,14 +160,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     <div className="bg-brand-gray-900 rounded-lg p-6 shadow-lg w-full">
       <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">{poll.question}</h2>
       <div className="space-y-3 mb-6">
-        {(
-          (() => {
-            const rawLimit = process.env.NEXT_PUBLIC_TEST_OPTIONS_LIMIT;
-            const limit = rawLimit ? Number(rawLimit) : undefined;
-            const opts = Array.isArray(poll.options) ? poll.options : [];
-            return typeof limit === 'number' && limit > 0 ? opts.slice(0, limit) : opts;
-          })()
-        ).map((option, index) => (
+        {poll.options.map((option, index) => (
           <button
             key={index}
             onClick={() => setSelectedOption(index)}
