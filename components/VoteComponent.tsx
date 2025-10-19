@@ -5,6 +5,12 @@ import type { Poll } from "@/lib/types";
 
 type VoteState = "idle" | "submitting" | "voted" | "duplicate" | "closed" | "error";
 
+// Unified copy
+const MSG_THANKS = "Thanks for your vote — come back tomorrow for new questions.";
+const MSG_ALREADY = "You’ve already voted today — new poll arrives at 12:00 AM Eastern.";
+const MSG_CLOSED  = "Voting is closed. New questions arrive at 12:00 AM Eastern.";
+const VOTED_FLAG = (pollId: string) => `voted:${pollId}`;
+
 interface Props {
   poll: Poll; // { id: string; question: string; options: string[]; ... }
 }
@@ -16,26 +22,23 @@ export default function VoteComponent({ poll }: Props) {
   const [totalsPerOption, setTotalsPerOption] = useState<number[] | null>(null);
   const [totalVotes, setTotalVotes] = useState<number>(0);
 
-  const votedKey = useMemo(() => `voted:${poll.id}`, [poll.id]);
+  const votedKey = useMemo(() => VOTED_FLAG(poll.id), [poll.id]);
 
-  // Pre-disable if already voted on this poll (persist across navigation/refresh)
+  // Persisted lockout on revisit/refresh
   useEffect(() => {
     const already = typeof window !== "undefined" && localStorage.getItem(votedKey) === "1";
     if (already) {
       setState("duplicate");
-      setBanner("You’ve already voted today.");
-      // Optionally fetch current aggregates for this poll if your API exposes them
-      // For now we leave bars empty until user votes once in session
+      setBanner(MSG_ALREADY);
     }
   }, [votedKey]);
 
   async function handleVote(optionIdx: number) {
-    if (state !== "idle") return; // buttons disabled when not idle
+    if (state !== "idle") return; // disable when not idle
     setSubmitting(true);
 
     try {
-      // 1) World App verify WITH signal = poll.id
-      // MiniKit is injected in World App webview; keep this generic
+      // World App verify with signal = poll.id
       const mini = (window as any).MiniKit;
       if (!mini?.verify) {
         setState("error");
@@ -45,35 +48,30 @@ export default function VoteComponent({ poll }: Props) {
 
       const proof = await mini.verify({
         action: process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE!,
-        signal: poll.id, // CRITICAL: binds nullifier to this poll
+        signal: poll.id, // critical: binds nullifier to this poll
       });
 
-      // 2) POST to server
       const res = await fetch("/api/vote", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ pollId: poll.id, optionIdx, proof }),
       });
+
       const payload = await res.json();
 
       if (res.status === 200) {
-        // First vote success
-        lockOut(payload, "Thanks for your vote—come back tomorrow for new questions.", "voted");
+        lockOut(payload, MSG_THANKS, "voted");
         return;
       }
-
       if (res.status === 409) {
-        // Duplicate vote (server conflict on PK)
-        lockOut(payload, "You’ve already voted today.", "duplicate");
+        lockOut(payload, MSG_ALREADY, "duplicate");
         return;
       }
-
       if (res.status === 403) {
         setState("closed");
-        setBanner("Voting is closed. New questions arrive at 12:00 AM Eastern.");
+        setBanner(MSG_CLOSED);
         return;
       }
-
       if (res.status === 401) {
         setState("error");
         setBanner("Verification failed. Please verify in World App and try again.");
