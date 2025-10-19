@@ -8,20 +8,29 @@ interface VerifyReply {
 }
 
 export async function verifyProof(payload: ISuccessResult, actionId: string, signal?: string): Promise<VerifyReply> {
-  const WLD_APP_ID = process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`;
+  const WLD_APP_ID = process.env.WLD_APP_ID as `app_${string}`;
+  const WLD_VERIFY_ENDPOINT = process.env.WLD_VERIFY_ENDPOINT;
 
   if (!WLD_APP_ID) {
     throw new Error("WLD_APP_ID not configured");
   }
 
-  console.log("=== WORLD ID VERIFY DEBUG ===");
+  console.log("=== WORLD ID VERIFY v2 DEBUG ===");
   console.log("WLD_APP_ID:", WLD_APP_ID);
   console.log("Action:", actionId);
   console.log("Signal:", signal);
   console.log("Payload:", JSON.stringify(payload, null, 2));
 
   try {
-    const verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal);
+    // Use custom endpoint if provided, otherwise use default
+    const verifyRes = await verifyCloudProof(
+      payload, 
+      WLD_APP_ID, 
+      actionId, 
+      signal,
+      WLD_VERIFY_ENDPOINT ? { endpoint: WLD_VERIFY_ENDPOINT } : undefined
+    );
+    
     console.log("World ID verification result:", JSON.stringify(verifyRes, null, 2));
 
     if (verifyRes.success) {

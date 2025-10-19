@@ -1,6 +1,7 @@
 import VoteComponent from '@/components/VoteComponent';
 import { Poll } from '@/lib/types';
 import { supabase } from '@/lib/db';
+import { getEasternTodayWindow } from '@/lib/time';
 
 interface LivePollsResponse {
   polls: Poll[];
@@ -13,13 +14,16 @@ async function getLivePolls(): Promise<LivePollsResponse> {
   // Get DAILY_POLL_COUNT from environment (default: 1)
   const dailyPollCount = parseInt(process.env.DAILY_POLL_COUNT || '1');
 
-  // Find polls that are live right now
+  // Get Eastern timezone day window
+  const { start: easternDayStart, end: easternDayEnd } = getEasternTodayWindow();
+
+  // Find polls that are live for today's Eastern day
   const { data: livePolls, error } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'live')
-    .lte('start_ts', now)
-    .gte('end_ts', now)
+    .lte('start_ts', easternDayEnd.toISOString())
+    .gte('end_ts', easternDayStart.toISOString())
     .order('start_ts', { ascending: true })
     .limit(dailyPollCount);
 
@@ -33,12 +37,12 @@ async function getLivePolls(): Promise<LivePollsResponse> {
     return { polls: parsedPolls };
   }
 
-  // If no live polls, find the next scheduled poll
+  // If no live polls for today, find the next scheduled poll
   const { data: scheduledPolls } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'scheduled')
-    .gt('start_ts', now)
+    .gt('start_ts', easternDayEnd.toISOString())
     .order('start_ts', { ascending: true })
     .limit(1);
 

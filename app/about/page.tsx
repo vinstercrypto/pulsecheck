@@ -11,16 +11,16 @@ export default function AboutPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Donate Section */}
             <div className="bg-brand-gray-900 rounded-lg p-6 mb-6 text-center shadow-lg">
-    <p className="text-brand-gray-300 mb-4">
-        Keeping PulseCheck bot-free and running costs real money. If you find it useful:
-    </p>
-    <button 
-        id="donate-button"
-        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
-    >
-        Buy me a coffee (2 WLD)
-    </button>
-</div>
+                <p className="text-brand-gray-300 mb-4">
+                    Keeping PulseCheck bot-free and running costs real money. If you find it useful:
+                </p>
+                <button 
+                    id="donate-button"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+                >
+                    Buy me a coffee (2 WLD)
+                </button>
+            </div>
 
             {/* Main About Content */}
             <div className="bg-brand-gray-900 rounded-lg p-6 md:p-8 shadow-lg">
@@ -32,7 +32,7 @@ export default function AboutPage() {
 
                     <h2 className="text-2xl font-semibold mt-6 mb-3">How It Works</h2>
                     <p>
-                        Each day, a new poll is released. Any human verified with World ID can cast a single vote. As soon as you vote, you see the live, aggregate results. Your individual vote is never revealed.
+                        Each day, a new poll is released at 12:00 AM Eastern. Any human verified with World ID can cast a single vote. As soon as you vote, you see the live, aggregate results. Your individual vote is never revealed.
                     </p>
                     
                     <h2 className="text-2xl font-semibold mt-6 mb-3">Privacy and Security</h2>

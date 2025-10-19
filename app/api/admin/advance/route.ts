@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/db';
+import { getEasternTodayWindow, getEasternMidnightNext } from '@/lib/time';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -14,28 +15,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const now = new Date().toISOString();
+  const easternNow = new Date();
+  const { end: easternDayEnd } = getEasternTodayWindow();
+  const easternMidnightNext = getEasternMidnightNext();
 
   try {
-    // Close polls that have ended
+    // Close polls that have ended (past Eastern day end)
     const { error: closeError } = await supabase
       .from('poll')
       .update({ status: 'closed' })
       .eq('status', 'live')
-      .lt('end_ts', now);
+      .lt('end_ts', easternDayEnd.toISOString());
 
     if (closeError) {
       console.error('Error closing polls:', closeError);
       return NextResponse.json({ error: 'Failed to close polls' }, { status: 500 });
     }
 
-    // Activate polls that should be live now
+    // Activate polls that should be live for the new Eastern day
     const { error: activateError } = await supabase
       .from('poll')
       .update({ status: 'live' })
       .eq('status', 'scheduled')
-      .lte('start_ts', now)
-      .gte('end_ts', now);
+      .lte('start_ts', easternNow.toISOString())
+      .gte('end_ts', easternMidnightNext.toISOString());
 
     if (activateError) {
       console.error('Error activating polls:', activateError);
@@ -53,7 +56,8 @@ export async function POST(request: Request) {
     }, {} as Record<string, number>) || {};
 
     return NextResponse.json({
-      message: 'Polls advanced successfully',
+      message: 'Polls advanced successfully for Eastern timezone',
+      easternTime: easternNow.toLocaleString('en-US', { timeZone: 'America/Toronto' }),
       counts: {
         scheduled: counts.scheduled || 0,
         live: counts.live || 0,

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/db';
+import { getEasternTodayWindow } from '@/lib/time';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -13,13 +14,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Invalid configuration' }, { status: 500 });
   }
 
-  // Find polls that are live right now (status='live' and start_ts <= now < end_ts)
+  // Get Eastern timezone day window
+  const { start: easternDayStart, end: easternDayEnd } = getEasternTodayWindow();
+
+  // Find polls that are live for today's Eastern day
   const { data: livePolls, error: liveError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'live')
-    .lte('start_ts', now)
-    .gte('end_ts', now)
+    .lte('start_ts', easternDayEnd.toISOString())
+    .gte('end_ts', easternDayStart.toISOString())
     .order('start_ts', { ascending: true })
     .limit(dailyPollCount);
 
@@ -38,12 +42,12 @@ export async function GET() {
     return NextResponse.json({ polls: parsedPolls });
   }
 
-  // If no live polls, find the next scheduled poll
+  // If no live polls for today, find the next scheduled poll
   const { data: scheduledPolls, error: scheduledError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'scheduled')
-    .gt('start_ts', now)
+    .gt('start_ts', easternDayEnd.toISOString())
     .order('start_ts', { ascending: true })
     .limit(1);
 

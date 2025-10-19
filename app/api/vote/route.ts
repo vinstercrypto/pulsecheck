@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/db';
 import { verifyProof } from '@/lib/worldid';
+import { getEasternTodayWindow } from '@/lib/time';
 import { NextResponse } from 'next/server';
 import { Poll } from '@/lib/types';
 
@@ -38,36 +39,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid option index.' }, { status: 400 });
   }
   
-  // Timebox validation: vote only when now() ∈ [start_ts, end_ts)
-  const now = new Date();
-  const start = new Date(poll.start_ts);
-  const end = new Date(poll.end_ts);
+  // Eastern timezone validation: vote only when within today's window
+  const easternNow = new Date();
+  const { start: easternDayStart, end: easternDayEnd } = getEasternTodayWindow();
+  const pollStart = new Date(poll.start_ts);
+  const pollEnd = new Date(poll.end_ts);
   
-  if (now < start) {
-    return NextResponse.json({ error: 'This poll has not started yet.' }, { status: 403 });
+  // Check if poll is within today's Eastern day window
+  if (easternNow < easternDayStart || easternNow > easternDayEnd) {
+    return NextResponse.json({ 
+      error: 'Voting is closed. New questions arrive at 12:00 AM Eastern.' 
+    }, { status: 403 });
   }
   
-  if (now >= end) {
-    return NextResponse.json({ error: 'This poll has closed.' }, { status: 403 });
+  // Check if poll is within its specific time window
+  if (easternNow < pollStart || easternNow >= pollEnd) {
+    return NextResponse.json({ 
+      error: 'Voting is closed. New questions arrive at 12:00 AM Eastern.' 
+    }, { status: 403 });
   }
 
   try {
-    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+    const actionId = process.env.WLD_ACTION_ID_VOTE;
     if (!actionId) throw new Error("Action ID is not configured.");
 
-    console.log("Server: Verifying proof...");
+    console.log("Server: Verifying proof with World ID Verify v2...");
     const { isHuman, nullifier_hash, code } = await verifyProof(proof, actionId);
 
     if (!isHuman) {
-      if (code === 'max_verifications_reached') {
-        return NextResponse.json(
-          { error: 'You have already verified for this poll. Please come back tomorrow.' },
-          { status: 409 }
-        );
-      }
       return NextResponse.json(
         { error: 'Verification failed. Please verify in World App and try again.' },
-        { status: 403 }
+        { status: 401 }
       );
     }
 
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
     if (voteError) {
       if (voteError.code === '23505') {
         return NextResponse.json(
-          { error: 'You have already voted in this poll.' },
+          { error: "You've already voted today." },
           { status: 409 }
         );
       }
@@ -110,6 +112,7 @@ export async function POST(request: Request) {
       message: 'Vote successful',
       totalsPerOption,
       totalVotes: results.total_votes,
+      successMessage: 'Thanks for your vote—come back tomorrow for new questions.'
     });
   } catch (error) {
     console.error('Vote processing error:', error);

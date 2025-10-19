@@ -30,6 +30,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
   const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE || 'vote';
@@ -43,6 +44,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       const signal = `poll-${poll.id}`;
@@ -102,7 +104,23 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       if (!res.ok) {
         console.error('Vote failed:', data);
-        throw new Error(data.error ?? 'Vote failed');
+        
+        // Handle specific error messages
+        if (res.status === 409) {
+          setError("You've already voted today.");
+        } else if (res.status === 403) {
+          setError('Voting is closed. New questions arrive at 12:00 AM Eastern.');
+        } else if (res.status === 401) {
+          setError('Verification failed. Please verify in World App and try again.');
+        } else {
+          setError(data.error ?? 'Vote failed');
+        }
+        return;
+      }
+
+      // Show success message
+      if (data.successMessage) {
+        setSuccessMessage(data.successMessage);
       }
 
       if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
@@ -152,6 +170,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         <p className="text-center mt-6 text-brand-gray-300 font-medium">
           Total Votes: {results.total_votes.toLocaleString()}
         </p>
+        {successMessage && (
+          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
+            {successMessage}
+          </div>
+        )}
       </div>
     );
   }
@@ -175,7 +198,17 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         ))}
       </div>
 
-      {error && <p className="text-red-400 text-center mb-4">{error}</p>}
+      {error && (
+        <div className="mb-4 p-4 bg-red-900 border border-red-700 rounded-lg text-red-200 text-center">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
+          {successMessage}
+        </div>
+      )}
 
       <button
         onClick={handleVerifyClick}
