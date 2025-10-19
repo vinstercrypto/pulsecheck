@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Poll, PollWithResults } from '@/lib/types';
 import {
   MiniKit,
@@ -12,6 +12,8 @@ import {
 interface VoteComponentProps {
   poll: Poll;
 }
+
+type VoteState = "idle" | "submitting" | "voted" | "duplicate" | "closed";
 
 const ProgressBar = ({ percent, label }: { percent: number; label: string }) => (
   <div className="w-full bg-brand-gray-700 rounded-full h-8 flex items-center relative overflow-hidden">
@@ -28,23 +30,47 @@ const ProgressBar = ({ percent, label }: { percent: number; label: string }) => 
 
 export default function VoteComponent({ poll }: VoteComponentProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [voteState, setVoteState] = useState<VoteState>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
 
   const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE || 'vote';
 
+  // Check localStorage on mount
+  useEffect(() => {
+    const votedKey = `voted:${poll.id}`;
+    const hasVoted = localStorage.getItem(votedKey) === "1";
+    
+    if (hasVoted) {
+      setVoteState("duplicate");
+      // Load current aggregates for this poll
+      loadPollResults();
+    }
+  }, [poll.id]);
+
+  const loadPollResults = async () => {
+    try {
+      const response = await fetch('/api/results?days=1');
+      const allResults = await response.json();
+      const pollResult = allResults.find((p: any) => p.id === poll.id);
+      
+      if (pollResult) {
+        setResults(pollResult);
+      }
+    } catch (error) {
+      console.error('Failed to load poll results:', error);
+    }
+  };
+
   const handleVerifyClick = async () => {
-    if (selectedOption === null) return;
+    if (selectedOption === null || voteState !== "idle") return;
     if (!MiniKit.isInstalled()) {
       setError('Open this in World App. Orb-verified humans only.');
       return;
     }
 
-    setIsLoading(true);
+    setVoteState("submitting");
     setError(null);
-    setSuccessMessage(null);
 
     try {
       const signal = `poll-${poll.id}`;
@@ -58,19 +84,16 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       if (finalPayload.status === 'error') {
         setError(finalPayload.error_code || 'Verification failed');
-        setIsLoading(false);
+        setVoteState("idle");
         return;
       }
 
       console.log('MiniKit verification successful');
-      console.log('Frontend - Action ID:', actionId);
-      console.log('Frontend - Signal:', signal);
-      console.log('Frontend - Payload:', finalPayload);
       await handleVote(finalPayload as ISuccessResult, actionId, signal);
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
-      setIsLoading(false);
+      setVoteState("idle");
     }
   };
 
@@ -78,7 +101,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     if (selectedOption === null) return;
 
     try {
-      // Extract only the proof fields needed by the backend
       const proof = {
         nullifier_hash: payload.nullifier_hash,
         merkle_root: payload.merkle_root,
@@ -102,43 +124,50 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        console.error('Vote failed:', data);
+      if (res.status === 200) {
+        // Success - first vote
+        setVoteState("voted");
+        localStorage.setItem(`voted:${poll.id}`, "1");
         
-        // Handle specific error messages
-        if (res.status === 409) {
-          setError("You've already voted today.");
-        } else if (res.status === 403) {
-          setError('Voting is closed. New questions arrive at 12:00 AM Eastern.');
-        } else if (res.status === 401) {
-          setError('Verification failed. Please verify in World App and try again.');
-        } else {
-          setError(data.error ?? 'Vote failed');
+        if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
+          const pollResults: PollWithResults = {
+            ...poll,
+            counts: data.totalsPerOption.map((count: number, index: number) => ({
+              option_idx: index,
+              count,
+            })),
+            total_votes: data.totalVotes,
+          };
+          setResults(pollResults);
         }
-        return;
-      }
-
-      // Show success message
-      if (data.successMessage) {
-        setSuccessMessage(data.successMessage);
-      }
-
-      if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
-        const pollResults: PollWithResults = {
-          ...poll,
-          counts: data.totalsPerOption.map((count: number, index: number) => ({
-            option_idx: index,
-            count,
-          })),
-          total_votes: data.totalVotes,
-        };
-        setResults(pollResults);
+      } else if (res.status === 409) {
+        // Duplicate vote - show aggregates
+        setVoteState("duplicate");
+        localStorage.setItem(`voted:${poll.id}`, "1");
+        
+        if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
+          const pollResults: PollWithResults = {
+            ...poll,
+            counts: data.totalsPerOption.map((count: number, index: number) => ({
+              option_idx: index,
+              count,
+            })),
+            total_votes: data.totalVotes,
+          };
+          setResults(pollResults);
+        }
+      } else if (res.status === 403) {
+        // Closed window
+        setVoteState("closed");
+      } else {
+        // Other errors
+        setError(data.error ?? 'Vote failed');
+        setVoteState("idle");
       }
     } catch (err: any) {
       setError(`Vote submission failed: ${err?.message ?? String(err)}`);
+      setVoteState("idle");
       console.error('Vote submission failed:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -152,6 +181,34 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       return { label: option, percentage, count };
     });
   }, [results]);
+
+  const getBannerMessage = () => {
+    switch (voteState) {
+      case "voted":
+        return "Thanks for your vote—come back tomorrow for new questions.";
+      case "duplicate":
+        return "You've already voted today.";
+      case "closed":
+        return "Voting is closed. New questions arrive at 12:00 AM Eastern.";
+      default:
+        return null;
+    }
+  };
+
+  const getBannerColor = () => {
+    switch (voteState) {
+      case "voted":
+        return "bg-green-900 border-green-700 text-green-200";
+      case "duplicate":
+        return "bg-yellow-900 border-yellow-700 text-yellow-200";
+      case "closed":
+        return "bg-red-900 border-red-700 text-red-200";
+      default:
+        return "";
+    }
+  };
+
+  const isDisabled = voteState !== "idle";
 
   if (results && pollResultsData) {
     return (
@@ -170,9 +227,9 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         <p className="text-center mt-6 text-brand-gray-300 font-medium">
           Total Votes: {results.total_votes.toLocaleString()}
         </p>
-        {successMessage && (
-          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
-            {successMessage}
+        {getBannerMessage() && (
+          <div className={`mt-4 p-4 border rounded-lg text-center ${getBannerColor()}`}>
+            {getBannerMessage()}
           </div>
         )}
       </div>
@@ -187,9 +244,12 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           <button
             key={index}
             onClick={() => setSelectedOption(index)}
+            disabled={isDisabled}
             className={`w-full p-4 rounded-lg text-left font-medium transition-all duration-200 border-2 ${
               selectedOption === index
                 ? 'bg-blue-500 border-blue-400 text-white'
+                : isDisabled
+                ? 'bg-brand-gray-600 border-brand-gray-500 text-brand-gray-400 cursor-not-allowed'
                 : 'bg-brand-gray-800 border-brand-gray-700 hover:border-blue-500'
             }`}
           >
@@ -204,18 +264,18 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         </div>
       )}
 
-      {successMessage && (
-        <div className="mb-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
-          {successMessage}
+      {getBannerMessage() && (
+        <div className={`mb-4 p-4 border rounded-lg text-center ${getBannerColor()}`}>
+          {getBannerMessage()}
         </div>
       )}
 
       <button
         onClick={handleVerifyClick}
-        disabled={selectedOption === null || isLoading}
+        disabled={selectedOption === null || isDisabled || voteState === "submitting"}
         className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg disabled:bg-brand-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
       >
-        {isLoading ? 'Verifying...' : 'Verify & Cast Vote'}
+        {voteState === "submitting" ? 'Verifying...' : 'Verify & Cast Vote'}
       </button>
     </div>
   );

@@ -47,16 +47,12 @@ export async function POST(request: Request) {
   
   // Check if poll is within today's Eastern day window
   if (easternNow < easternDayStart || easternNow > easternDayEnd) {
-    return NextResponse.json({ 
-      error: 'Voting is closed. New questions arrive at 12:00 AM Eastern.' 
-    }, { status: 403 });
+    return NextResponse.json({ error: 'closed' }, { status: 403 });
   }
   
   // Check if poll is within its specific time window
   if (easternNow < pollStart || easternNow >= pollEnd) {
-    return NextResponse.json({ 
-      error: 'Voting is closed. New questions arrive at 12:00 AM Eastern.' 
-    }, { status: 403 });
+    return NextResponse.json({ error: 'closed' }, { status: 403 });
   }
 
   try {
@@ -84,15 +80,32 @@ export async function POST(request: Request) {
 
     if (voteError) {
       if (voteError.code === '23505') {
-        return NextResponse.json(
-          { error: "You've already voted today." },
-          { status: 409 }
-        );
+        // User already voted - return aggregates for idempotent UX
+        const { data: results, error: resultsError } = await supabase
+          .from('poll_results')
+          .select('counts, total_votes')
+          .eq('poll_id', pollId)
+          .single();
+
+        if (resultsError || !results) {
+          throw new Error('Could not fetch results for duplicate vote.');
+        }
+
+        const totalsPerOption = options.map((_: any, index: number) => {
+          const found = results.counts.find((c: { option_idx: number }) => c.option_idx === index);
+          return found ? found.count : 0;
+        });
+
+        return NextResponse.json({
+          error: "You've already voted today.",
+          totalsPerOption,
+          totalVotes: results.total_votes,
+        }, { status: 409 });
       }
       throw voteError;
     }
 
-    // Get updated results
+    // Get updated results for successful vote
     const { data: results, error: resultsError } = await supabase
       .from('poll_results')
       .select('counts, total_votes')
@@ -112,7 +125,6 @@ export async function POST(request: Request) {
       message: 'Vote successful',
       totalsPerOption,
       totalVotes: results.total_votes,
-      successMessage: 'Thanks for your vote—come back tomorrow for new questions.'
     });
   } catch (error) {
     console.error('Vote processing error:', error);
