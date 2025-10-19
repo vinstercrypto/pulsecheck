@@ -85,6 +85,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     setBanner("");
 
     try {
+      // Use poll.id directly as signal (no prefix)
       const signal = poll.id;
       const verifyPayload: VerifyCommandInput = {
         action: actionId,
@@ -102,7 +103,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       }
 
       console.log('MiniKit verification successful');
-      await handleVote(finalPayload as ISuccessResult, actionId, signal);
+      await handleVote(finalPayload as ISuccessResult);
     } catch (err: any) {
       console.error('Verification error:', err);
       setBanner(MSG_VERIFY);
@@ -111,7 +112,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     }
   };
 
-  const handleVote = async (payload: ISuccessResult, action: string, signal: string) => {
+  const handleVote = async (payload: ISuccessResult) => {
     if (selectedOption === null) return;
 
     try {
@@ -122,7 +123,8 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         verification_level: payload.verification_level,
       };
 
-      console.log('Submitting vote with proof');
+      console.log('Submitting vote with proof for poll:', poll.id);
+      console.log('Option index:', selectedOption);
 
       const res = await fetch('/api/vote', {
         method: 'POST',
@@ -131,12 +133,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           pollId: poll.id,
           optionIdx: selectedOption,
           proof,
-          signal,
-          action: actionId,
         }),
       });
 
       const data = await res.json();
+      console.log('Vote response:', res.status, data);
 
       if (res.status === 200) {
         // Success - first vote
@@ -180,6 +181,10 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         setBannerKind("warning");
       } else if (res.status === 401) {
         setBanner(MSG_VERIFY);
+        setBannerKind("error");
+      } else if (res.status === 400) {
+        console.error('Bad request error:', data);
+        setBanner(MSG_GENERIC);
         setBannerKind("error");
       } else {
         // Other errors
