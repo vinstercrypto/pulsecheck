@@ -6,14 +6,14 @@ import type { Poll } from "@/lib/types";
 type VoteState = "idle" | "submitting" | "voted" | "duplicate" | "closed" | "error";
 
 // Unified copy
-const MSG_THANKS = "Thanks for your vote — come back tomorrow for new questions.";
+const MSG_THANKS  = "Thanks for your vote — come back tomorrow for new questions.";
 const MSG_ALREADY = "You’ve already voted today — new poll arrives at 12:00 AM Eastern.";
 const MSG_CLOSED  = "Voting is closed. New questions arrive at 12:00 AM Eastern.";
-const VOTED_FLAG = (pollId: string) => `voted:${pollId}`;
+const MSG_VERIFY  = "Verification failed. Please verify in World App and try again.";
+const MSG_GENERIC = "Something went wrong. Try again later.";
+const VOTED_FLAG  = (pollId: string) => `voted:${pollId}`;
 
-interface Props {
-  poll: Poll; // { id: string; question: string; options: string[]; ... }
-}
+interface Props { poll: Poll }
 
 export default function VoteComponent({ poll }: Props) {
   const [state, setState] = useState<VoteState>("idle");
@@ -23,8 +23,9 @@ export default function VoteComponent({ poll }: Props) {
   const [totalVotes, setTotalVotes] = useState<number>(0);
 
   const votedKey = useMemo(() => VOTED_FLAG(poll.id), [poll.id]);
+  const disabled = submitting || state !== "idle";
 
-  // Persisted lockout on revisit/refresh
+  // Lockout on refresh/navigation if already voted
   useEffect(() => {
     const already = typeof window !== "undefined" && localStorage.getItem(votedKey) === "1";
     if (already) {
@@ -34,61 +35,60 @@ export default function VoteComponent({ poll }: Props) {
   }, [votedKey]);
 
   async function handleVote(optionIdx: number) {
-    if (state !== "idle") return; // disable when not idle
+    if (state !== "idle") return;
     setSubmitting(true);
 
     try {
-      // World App verify with signal = poll.id
+      // 1) Verify in World App with signal=poll.id
       const mini = (window as any).MiniKit;
       if (!mini?.verify) {
-        setState("error");
-        setBanner("Verification not available. Open inside World App.");
-        return;
+        setState("error"); setBanner("Verification not available. Open inside World App."); return;
       }
-
       const proof = await mini.verify({
         action: process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE!,
-        signal: poll.id, // critical: binds nullifier to this poll
+        signal: poll.id, // CRITICAL: ties nullifier to this poll
       });
 
+      // 2) Server vote
       const res = await fetch("/api/vote", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ pollId: poll.id, optionIdx, proof }),
       });
 
-      const payload = await res.json();
+      // IMPORTANT: handle status FIRST; do not throw on 409
+      const safeJson = async () => {
+        try { return await res.json(); } catch { return {}; }
+      };
 
       if (res.status === 200) {
+        const payload = await safeJson();
         lockOut(payload, MSG_THANKS, "voted");
         return;
       }
       if (res.status === 409) {
+        const payload = await safeJson(); // aggregates should be present; handle even if empty
         lockOut(payload, MSG_ALREADY, "duplicate");
         return;
       }
       if (res.status === 403) {
-        setState("closed");
-        setBanner(MSG_CLOSED);
-        return;
+        setState("closed"); setBanner(MSG_CLOSED); return;
       }
       if (res.status === 401) {
-        setState("error");
-        setBanner("Verification failed. Please verify in World App and try again.");
-        return;
+        setState("error"); setBanner(MSG_VERIFY); return;
       }
 
-      setState("error");
-      setBanner("Something went wrong. Try again later.");
+      // any other status → generic, but DO NOT override duplicate/success banners
+      setState("error"); setBanner(MSG_GENERIC);
     } catch {
-      setState("error");
-      setBanner("Verification failed. Please try again inside World App.");
+      setState("error"); setBanner(MSG_VERIFY);
     } finally {
       setSubmitting(false);
     }
   }
 
   function lockOut(payload: any, message: string, finalState: VoteState) {
+    // populate bars if provided
     try {
       if (payload?.totalsPerOption) setTotalsPerOption(payload.totalsPerOption);
       if (typeof payload?.totalVotes === "number") setTotalVotes(payload.totalVotes);
@@ -98,15 +98,13 @@ export default function VoteComponent({ poll }: Props) {
     setState(finalState);
   }
 
-  const disabled = submitting || state !== "idle";
-
   return (
     <div className="bg-brand-gray-900 rounded-lg p-6">
-      {banner ? (
+      {banner && (
         <div className="mb-4 rounded-md border border-brand-gray-700 bg-brand-gray-800 px-4 py-3 text-brand-gray-100">
           {banner}
         </div>
-      ) : null}
+      )}
 
       <h2 className="text-xl font-semibold text-brand-gray-100 mb-4">{poll.question}</h2>
 
@@ -134,9 +132,7 @@ export default function VoteComponent({ poll }: Props) {
               <div key={idx}>
                 <div className="flex justify-between text-sm text-brand-gray-300">
                   <span>{opt}</span>
-                  <span>
-                    {count} • {pct}%
-                  </span>
+                  <span>{count} • {pct}%</span>
                 </div>
                 <div className="h-2 bg-brand-gray-800 rounded">
                   <div className="h-2 bg-blue-500 rounded" style={{ width: `${pct}%` }} />
