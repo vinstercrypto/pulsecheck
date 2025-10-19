@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Donate Section */}
             <div className="bg-brand-gray-900 rounded-lg p-6 mb-6 text-center shadow-lg">
     <p className="text-brand-gray-300 mb-4">

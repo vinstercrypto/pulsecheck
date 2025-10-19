@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
-  // Production: filter by start_ts within the last N days
+  // Get recent polls with vote counts, sorted by start_ts desc
   const { data, error } = await supabase
     .from('poll_results')
     .select('*')

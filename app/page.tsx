@@ -13,13 +13,6 @@ async function getLivePolls(): Promise<LivePollsResponse> {
   // Get DAILY_POLL_COUNT from environment (default: 1)
   const dailyPollCount = parseInt(process.env.DAILY_POLL_COUNT || '1');
 
-  // Get the start of today in UTC
-  const todayStart = new Date(now);
-  todayStart.setUTCHours(0, 0, 0, 0);
-  
-  const tomorrowStart = new Date(todayStart);
-  tomorrowStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
-
   // Find polls that are live right now
   const { data: livePolls, error } = await supabase
     .from('poll')
@@ -27,8 +20,6 @@ async function getLivePolls(): Promise<LivePollsResponse> {
     .eq('status', 'live')
     .lte('start_ts', now)
     .gte('end_ts', now)
-    .gte('start_ts', todayStart.toISOString())
-    .lt('start_ts', tomorrowStart.toISOString())
     .order('start_ts', { ascending: true })
     .limit(dailyPollCount);
 
@@ -48,8 +39,6 @@ async function getLivePolls(): Promise<LivePollsResponse> {
     .select('*')
     .eq('status', 'scheduled')
     .gt('start_ts', now)
-    .gte('start_ts', todayStart.toISOString())
-    .lt('start_ts', tomorrowStart.toISOString())
     .order('start_ts', { ascending: true })
     .limit(1);
 

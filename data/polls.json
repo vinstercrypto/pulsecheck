@@ -1,373 +1,722 @@
 [
   {
-    "question": "Will AI replace most jobs by 2030?",
-    "options": ["Yes", "No", "Unsure"]
+    "question": "Morning vibe check?",
+    "options": [
+      "Calm",
+      "Busy",
+      "Sleepy"
+    ]
+  },
+  {
+    "question": "Pick a snack right now",
+    "options": [
+      "Fruit",
+      "Chips",
+      "Chocolate"
+    ]
+  },
+  {
+    "question": "Go-to hot drink",
+    "options": [
+      "Coffee",
+      "Tea",
+      "Hot chocolate"
+    ]
+  },
+  {
+    "question": "Best focus soundtrack",
+    "options": [
+      "Lo-fi",
+      "Classical",
+      "Ambient"
+    ]
+  },
+  {
+    "question": "Ideal nap length",
+    "options": [
+      "10 min",
+      "20 min",
+      "30 min"
+    ]
+  },
+  {
+    "question": "Which sky is best",
+    "options": [
+      "Sunrise",
+      "Blue noon",
+      "Sunset"
+    ]
+  },
+  {
+    "question": "Your superhero power for a day",
+    "options": [
+      "Fly",
+      "Invisibility",
+      "Time pause"
+    ]
+  },
+  {
+    "question": "Weekend starter",
+    "options": [
+      "Sleep in",
+      "Early adventure",
+      "Slow breakfast"
+    ]
+  },
+  {
+    "question": "Pick a cozy item",
+    "options": [
+      "Blanket",
+      "Warm socks",
+      "Hoodie"
+    ]
+  },
+  {
+    "question": "Favorite cookie",
+    "options": [
+      "Chocolate chip",
+      "Oatmeal raisin",
+      "Sugar"
+    ]
+  },
+  {
+    "question": "Breakfast style",
+    "options": [
+      "Savory",
+      "Sweet",
+      "Skip"
+    ]
+  },
+  {
+    "question": "Best tiny break",
+    "options": [
+      "Stretch",
+      "Snack",
+      "Step outside"
+    ]
+  },
+  {
+    "question": "Choose a mini pet (imaginary)",
+    "options": [
+      "Pocket dragon",
+      "Tiny panda",
+      "Micro-dinosaur"
+    ]
   },
   {
-    "question": "Should remote work become the default for office jobs?",
-    "options": ["Yes", "No", "Depends on the role"]
+    "question": "Favorite weather mood",
+    "options": [
+      "Rainy",
+      "Sunny",
+      "Snowy"
+    ]
   },
   {
-    "question": "Do you support a 4-day work week?",
-    "options": ["Yes", "No", "Need more details"]
+    "question": "Preferred water temp",
+    "options": [
+      "Ice cold",
+      "Cool",
+      "Room temp"
+    ]
   },
   {
-    "question": "Is cryptocurrency the future of money?",
-    "options": ["Yes", "No", "Maybe"]
+    "question": "Message style",
+    "options": [
+      "Short",
+      "Detailed",
+      "Emojis"
+    ]
   },
   {
-    "question": "Should voting be mandatory?",
-    "options": ["Yes", "No", "Undecided"]
+    "question": "Your desk mascot",
+    "options": [
+      "Plant",
+      "Bobblehead",
+      "Nothing"
+    ]
   },
   {
-    "question": "Do you believe in extraterrestrial life?",
-    "options": ["Yes", "No", "Not sure"]
+    "question": "Pick a fruit",
+    "options": [
+      "Strawberries",
+      "Mango",
+      "Pineapple"
+    ]
   },
   {
-    "question": "Should social media be regulated more strictly?",
-    "options": ["Yes", "No", "Depends"]
+    "question": "First app you open",
+    "options": [
+      "Messages",
+      "Music",
+      "Weather"
+    ]
   },
   {
-    "question": "Is universal basic income a good idea?",
-    "options": ["Yes", "No", "Need more research"]
+    "question": "Movie snack",
+    "options": [
+      "Popcorn",
+      "Candy",
+      "Nachos"
+    ]
   },
   {
-    "question": "Will electric vehicles replace gas cars by 2035?",
-    "options": ["Yes", "No", "Partially"]
+    "question": "Travel day carry",
+    "options": [
+      "Book",
+      "Headphones",
+      "Snacks"
+    ]
   },
   {
-    "question": "Should college education be free?",
-    "options": ["Yes", "No", "Only for some fields"]
+    "question": "Morning light",
+    "options": [
+      "Curtains open",
+      "Soft lamp",
+      "Dark mode"
+    ]
   },
   {
-    "question": "Do you trust AI-generated content?",
-    "options": ["Yes", "No", "Sometimes"]
+    "question": "Best smell",
+    "options": [
+      "Fresh bread",
+      "Rain on pavement",
+      "Pine forest"
+    ]
   },
   {
-    "question": "Should internet access be a human right?",
-    "options": ["Yes", "No", "Unsure"]
+    "question": "Comfy footwear",
+    "options": [
+      "Sneakers",
+      "Slippers",
+      "Barefoot"
+    ]
   },
   {
-    "question": "Is climate change the biggest threat to humanity?",
-    "options": ["Yes", "No", "One of many"]
+    "question": "Choose a calm scene",
+    "options": [
+      "Beach",
+      "Mountains",
+      "Forest"
+    ]
   },
   {
-    "question": "Should governments have access to encrypted messages?",
-    "options": ["Yes", "No", "Only with warrant"]
+    "question": "Pizza edge choice",
+    "options": [
+      "Crust first",
+      "Slice tip",
+      "Fold it"
+    ]
   },
   {
-    "question": "Will humans colonize Mars in your lifetime?",
-    "options": ["Yes", "No", "Maybe"]
+    "question": "Phone background vibe",
+    "options": [
+      "Nature",
+      "Abstract",
+      "Pets"
+    ]
   },
   {
-    "question": "Should billionaires exist?",
-    "options": ["Yes", "No", "With wealth cap"]
+    "question": "Best tiny win",
+    "options": [
+      "Inbox zero",
+      "Clean desk",
+      "Perfect coffee"
+    ]
   },
   {
-    "question": "Is privacy dead in the digital age?",
-    "options": ["Yes", "No", "We can still fight for it"]
+    "question": "Preferred pen type",
+    "options": [
+      "Gel",
+      "Ballpoint",
+      "Felt-tip"
+    ]
   },
   {
-    "question": "Should AI be allowed to make judicial decisions?",
-    "options": ["Yes", "No", "Only as advisory"]
+    "question": "Power-up breakfast add",
+    "options": [
+      "Eggs",
+      "Yogurt",
+      "Avocado"
+    ]
   },
   {
-    "question": "Do you support nuclear energy?",
-    "options": ["Yes", "No", "Need safer tech"]
+    "question": "Quick game break",
+    "options": [
+      "Word game",
+      "Puzzle",
+      "Arcade tapper"
+    ]
   },
   {
-    "question": "Should there be term limits for all politicians?",
-    "options": ["Yes", "No", "Depends on position"]
+    "question": "Pick a season",
+    "options": [
+      "Spring",
+      "Summer",
+      "Autumn"
+    ]
   },
   {
-    "question": "Will cash become obsolete?",
-    "options": ["Yes", "No", "Not completely"]
+    "question": "Ice cream style",
+    "options": [
+      "Cone",
+      "Cup",
+      "Milkshake"
+    ]
   },
   {
-    "question": "Should corporations have the same rights as people?",
-    "options": ["Yes", "No", "Limited rights"]
+    "question": "Board game role",
+    "options": [
+      "Strategist",
+      "Chaos agent",
+      "Rule keeper"
+    ]
   },
   {
-    "question": "Is work-life balance achievable in modern society?",
-    "options": ["Yes", "No", "Depends on career"]
+    "question": "Your emoji energy",
+    "options": [
+      "🔥",
+      "✨",
+      "😎"
+    ]
   },
   {
-    "question": "Should genetic engineering be used on humans?",
-    "options": ["Yes", "No", "Only for diseases"]
+    "question": "Choose a super-pet",
+    "options": [
+      "Teleporting cat",
+      "Talking dog",
+      "Chill turtle"
+    ]
   },
   {
-    "question": "Will traditional banks exist in 20 years?",
-    "options": ["Yes", "No", "In different form"]
+    "question": "Favorite breakfast carb",
+    "options": [
+      "Bagel",
+      "Pancakes",
+      "Toast"
+    ]
   },
   {
-    "question": "Should companies monitor employee productivity?",
-    "options": ["Yes", "No", "With transparency"]
+    "question": "Tea mood",
+    "options": [
+      "Green",
+      "Black",
+      "Herbal"
+    ]
   },
   {
-    "question": "Is the Metaverse the future of social interaction?",
-    "options": ["Yes", "No", "Just a fad"]
+    "question": "Park activity",
+    "options": [
+      "Walk",
+      "Read",
+      "People-watch"
+    ]
   },
   {
-    "question": "Should AI-generated art be copyrightable?",
-    "options": ["Yes", "No", "Depends"]
+    "question": "Best rainy-day plan",
+    "options": [
+      "Movies",
+      "Bake",
+      "Nap"
+    ]
   },
   {
-    "question": "Will quantum computing revolutionize technology?",
-    "options": ["Yes", "No", "Eventually"]
+    "question": "Headphones setting",
+    "options": [
+      "Noise-cancel",
+      "Transparency",
+      "Off"
+    ]
   },
   {
-    "question": "Should personal data be treated as property you can sell?",
-    "options": ["Yes", "No", "With regulations"]
+    "question": "Choose a candle",
+    "options": [
+      "Vanilla",
+      "Citrus",
+      "Cedar"
+    ]
   },
   {
-    "question": "Is democracy the best form of government?",
-    "options": ["Yes", "No", "Depends on context"]
+    "question": "Water activity",
+    "options": [
+      "Swim",
+      "Float",
+      "Wade"
+    ]
   },
   {
-    "question": "Should video games be considered art?",
-    "options": ["Yes", "No", "Some of them"]
+    "question": "Sandwich cut",
+    "options": [
+      "Diagonal",
+      "Straight",
+      "Whole"
+    ]
   },
   {
-    "question": "Will lab-grown meat replace traditional meat?",
-    "options": ["Yes", "No", "Coexist"]
+    "question": "Favorite tiny joy",
+    "options": [
+      "Fresh sheets",
+      "Warm laundry",
+      "Perfect playlist"
+    ]
   },
   {
-    "question": "Should children under 13 be allowed on social media?",
-    "options": ["Yes", "No", "With parental control"]
+    "question": "Breakfast fruit",
+    "options": [
+      "Banana",
+      "Berries",
+      "Citrus"
+    ]
   },
   {
-    "question": "Is space exploration worth the cost?",
-    "options": ["Yes", "No", "Depends on goals"]
+    "question": "Commuter style",
+    "options": [
+      "Music",
+      "Podcast",
+      "Quiet"
+    ]
   },
   {
-    "question": "Should there be age limits for political leaders?",
-    "options": ["Yes", "No", "Term limits instead"]
+    "question": "Digital clock format",
+    "options": [
+      "12-hour",
+      "24-hour",
+      "Analog watch"
+    ]
   },
   {
-    "question": "Will autonomous vehicles reduce traffic accidents?",
-    "options": ["Yes", "No", "Not significantly"]
+    "question": "Pick a sky feature",
+    "options": [
+      "Clouds",
+      "Stars",
+      "Moon"
+    ]
   },
   {
-    "question": "Should athletes be allowed to use performance enhancers?",
-    "options": ["Yes", "No", "Only safe ones"]
+    "question": "Cold treat",
+    "options": [
+      "Popsicle",
+      "Gelato",
+      "Frozen yogurt"
+    ]
   },
   {
-    "question": "Is homeschooling as effective as traditional schooling?",
-    "options": ["Yes", "No", "Depends on execution"]
+    "question": "Note style",
+    "options": [
+      "Bullets",
+      "Checklists",
+      "Sketches"
+    ]
   },
   {
-    "question": "Should plastic be banned globally?",
-    "options": ["Yes", "No", "Only single-use"]
+    "question": "Choose a color vibe",
+    "options": [
+      "Ocean blue",
+      "Forest green",
+      "Sunset orange"
+    ]
   },
   {
-    "question": "Will brain-computer interfaces become mainstream?",
-    "options": ["Yes", "No", "Not in near future"]
+    "question": "Gaming throwback",
+    "options": [
+      "Retro arcade",
+      "Puzzle classic",
+      "Platformer"
+    ]
   },
   {
-    "question": "Should voting age be lowered to 16?",
-    "options": ["Yes", "No", "Maybe"]
+    "question": "Desk drink coaster",
+    "options": [
+      "Use it",
+      "Forget it",
+      "What coaster?"
+    ]
   },
   {
-    "question": "Is globalization good for humanity?",
-    "options": ["Yes", "No", "Mixed results"]
+    "question": "Morning stretch",
+    "options": [
+      "Neck/shoulders",
+      "Back twist",
+      "Hamstrings"
+    ]
   },
   {
-    "question": "Should news media be government-funded?",
-    "options": ["Yes", "No", "Partially"]
+    "question": "Choose a snack crunch",
+    "options": [
+      "Pretzels",
+      "Carrots",
+      "Chips"
+    ]
   },
   {
-    "question": "Will 3D printing revolutionize manufacturing?",
-    "options": ["Yes", "No", "Only certain industries"]
+    "question": "Reading format",
+    "options": [
+      "Paper",
+      "E-book",
+      "Audiobook"
+    ]
   },
   {
-    "question": "Should historical monuments be removed if controversial?",
-    "options": ["Yes", "No", "Move to museums"]
+    "question": "Energy reset",
+    "options": [
+      "Cold water",
+      "Quick walk",
+      "Power pose"
+    ]
   },
   {
-    "question": "Is artificial meat healthier than real meat?",
-    "options": ["Yes", "No", "About the same"]
+    "question": "Doodle theme",
+    "options": [
+      "Stars",
+      "Boxes",
+      "Waves"
+    ]
   },
   {
-    "question": "Should companies be required to disclose AI usage?",
-    "options": ["Yes", "No", "Depends on context"]
+    "question": "Choose a cozy drink add",
+    "options": [
+      "Cinnamon",
+      "Honey",
+      "Marshmallows"
+    ]
   },
   {
-    "question": "Will cities become obsolete with remote work?",
-    "options": ["Yes", "No", "They'll adapt"]
+    "question": "Photo habit",
+    "options": [
+      "Snap often",
+      "Only moments",
+      "Live in the moment"
+    ]
   },
   {
-    "question": "Should there be limits on CEO-to-worker pay ratios?",
-    "options": ["Yes", "No", "Let market decide"]
+    "question": "Best morning sound",
+    "options": [
+      "Birds",
+      "Coffee maker",
+      "Silence"
+    ]
   },
   {
-    "question": "Is online education as good as in-person?",
-    "options": ["Yes", "No", "Depends on subject"]
+    "question": "Road-trip role",
+    "options": [
+      "Driver",
+      "DJ",
+      "Snack captain"
+    ]
   },
   {
-    "question": "Should deepfakes be illegal?",
-    "options": ["Yes", "No", "Only malicious ones"]
+    "question": "Sauce companion",
+    "options": [
+      "Ketchup",
+      "BBQ",
+      "Ranch"
+    ]
   },
   {
-    "question": "Will augmented reality replace smartphones?",
-    "options": ["Yes", "No", "Complement them"]
+    "question": "Choose a plant power",
+    "options": [
+      "Air-purifying",
+      "Flowering",
+      "Low-maintenance"
+    ]
   },
   {
-    "question": "Should companies be carbon-neutral by law?",
-    "options": ["Yes", "No", "Incentivize not mandate"]
+    "question": "After-lunch vibe",
+    "options": [
+      "Sleepy",
+      "Steady",
+      "Energized"
+    ]
   },
   {
-    "question": "Is working from home more productive?",
-    "options": ["Yes", "No", "Depends on person"]
+    "question": "Ideal blanket weight",
+    "options": [
+      "Light",
+      "Medium",
+      "Weighted"
+    ]
   },
   {
-    "question": "Should tipping culture be abolished?",
-    "options": ["Yes", "No", "Better wages instead"]
+    "question": "Sweet vs salty",
+    "options": [
+      "Sweet",
+      "Salty",
+      "Sweet & salty"
+    ]
   },
   {
-    "question": "Will fusion energy solve our energy crisis?",
-    "options": ["Yes", "No", "Too far away"]
+    "question": "Pick a breakfast pace",
+    "options": [
+      "Grab & go",
+      "10-min sit",
+      "Slow brunch"
+    ]
   },
   {
-    "question": "Should anonymity be allowed on the internet?",
-    "options": ["Yes", "No", "With restrictions"]
+    "question": "Best time for ideas",
+    "options": [
+      "Morning",
+      "Afternoon",
+      "Late night"
+    ]
   },
   {
-    "question": "Is cancel culture harmful or helpful?",
-    "options": ["Harmful", "Helpful", "Both"]
+    "question": "Mug preference",
+    "options": [
+      "Big mug",
+      "Standard",
+      "Travel tumbler"
+    ]
   },
   {
-    "question": "Should algorithmic trading be banned?",
-    "options": ["Yes", "No", "More regulation"]
+    "question": "Quick clean target",
+    "options": [
+      "Desk",
+      "Fridge",
+      "Car"
+    ]
   },
   {
-    "question": "Will vertical farming feed the world?",
-    "options": ["Yes", "No", "Help but not solve"]
+    "question": "Sticker style",
+    "options": [
+      "Minimal",
+      "Cute",
+      "Bold"
+    ]
   },
   {
-    "question": "Should internet be decentralized like Web3 promises?",
-    "options": ["Yes", "No", "Partially"]
+    "question": "Favorite popcorn style",
+    "options": [
+      "Butter",
+      "Kettle",
+      "Cheese"
+    ]
   },
   {
-    "question": "Is fast fashion destroying the planet?",
-    "options": ["Yes", "No", "Significant contributor"]
+    "question": "Choose a gentle alarm",
+    "options": [
+      "Chimes",
+      "Soft music",
+      "Sunrise light"
+    ]
   },
   {
-    "question": "Should AI have rights?",
-    "options": ["Yes", "No", "Not yet"]
+    "question": "Scented soap pick",
+    "options": [
+      "Citrus",
+      "Lavender",
+      "Unscented"
+    ]
   },
   {
-    "question": "Will we achieve immortality through technology?",
-    "options": ["Yes", "No", "Not for centuries"]
+    "question": "Notebook type",
+    "options": [
+      "Grid",
+      "Lined",
+      "Blank"
+    ]
   },
   {
-    "question": "Should governments mandate renewable energy?",
-    "options": ["Yes", "No", "Gradual transition"]
-  },
-  {
-    "question": "Is streaming better than owning media?",
-    "options": ["Yes", "No", "Each has benefits"]
-  },
-  {
-    "question": "Should facial recognition be banned in public?",
-    "options": ["Yes", "No", "With strict oversight"]
-  },
-  {
-    "question": "Will printed books become obsolete?",
-    "options": ["Yes", "No", "Always have niche"]
-  },
-  {
-    "question": "Should corporations pay for environmental damage?",
-    "options": ["Yes", "No", "Based on impact"]
-  },
-  {
-    "question": "Is shorter attention span a real problem?",
-    "options": ["Yes", "No", "Just different"]
-  },
-  {
-    "question": "Should all drugs be decriminalized?",
-    "options": ["Yes", "No", "Only some"]
-  },
-  {
-    "question": "Will we see human cloning in our lifetime?",
-    "options": ["Yes", "No", "Hope not"]
-  },
-  {
-    "question": "Should housing be a guaranteed human right?",
-    "options": ["Yes", "No", "Basic shelter yes"]
-  },
-  {
-    "question": "Is consumerism destroying society?",
-    "options": ["Yes", "No", "It's complicated"]
-  },
-  {
-    "question": "Should politicians be required to pass competency tests?",
-    "options": ["Yes", "No", "Slippery slope"]
-  },
-  {
-    "question": "Will desalination solve water scarcity?",
-    "options": ["Yes", "No", "Partially"]
-  },
-  {
-    "question": "Should all code be open source?",
-    "options": ["Yes", "No", "Depends on type"]
-  },
-  {
-    "question": "Is traditional education becoming obsolete?",
-    "options": ["Yes", "No", "Needs reform"]
-  },
-  {
-    "question": "Should microtransactions in games be regulated?",
-    "options": ["Yes", "No", "Age restrictions"]
-  },
-  {
-    "question": "Will humans merge with AI?",
-    "options": ["Yes", "No", "Eventually"]
-  },
-  {
-    "question": "Should companies be worker-owned cooperatives?",
-    "options": ["Yes", "No", "Option not mandate"]
-  },
-  {
-    "question": "Is traditional marriage still relevant?",
-    "options": ["Yes", "No", "Evolving concept"]
-  },
-  {
-    "question": "Should gene therapy be available to everyone?",
-    "options": ["Yes", "No", "Needs regulation"]
-  },
-  {
-    "question": "Will paper currency exist in 2050?",
-    "options": ["Yes", "No", "Rare but exists"]
-  },
-  {
-    "question": "Should social credit systems be implemented globally?",
-    "options": ["Yes", "No", "Too dystopian"]
-  },
-  {
-    "question": "Is gig economy good for workers?",
-    "options": ["Yes", "No", "Needs protection"]
-  },
-  {
-    "question": "Should we terraform other planets?",
-    "options": ["Yes", "No", "Fix Earth first"]
-  },
-  {
-    "question": "Will subscription models replace ownership entirely?",
-    "options": ["Yes", "No", "Balanced mix"]
-  },
-  {
-    "question": "Should algorithms be explainable by law?",
-    "options": ["Yes", "No", "For critical systems"]
-  },
-  {
-    "question": "Is meditation as effective as medication for anxiety?",
-    "options": ["Yes", "No", "Complementary"]
-  },
-  {
-    "question": "Should there be a maximum wealth limit?",
-    "options": ["Yes", "No", "Progressive taxation"]
+    "question": "Lazy Sunday plan",
+    "options": [
+      "Binge show",
+      "Bake/cook",
+      "Long walk"
+    ]
+  },
+  {
+    "question": "Window view wish",
+    "options": [
+      "Trees",
+      "City",
+      "Water"
+    ]
+  },
+  {
+    "question": "Quick chill playlist",
+    "options": [
+      "Lo-fi beats",
+      "Acoustic",
+      "Jazz"
+    ]
+  },
+  {
+    "question": "Chocolate style",
+    "options": [
+      "Dark",
+      "Milk",
+      "White"
+    ]
+  },
+  {
+    "question": "Hydration reminder",
+    "options": [
+      "App",
+      "Bottle markers",
+      "Habit"
+    ]
+  },
+  {
+    "question": "Sunny day treat",
+    "options": [
+      "Iced drink",
+      "Park sit",
+      "Bike ride"
+    ]
+  },
+  {
+    "question": "Desk lighting",
+    "options": [
+      "Warm lamp",
+      "Cool lamp",
+      "Natural light"
+    ]
+  },
+  {
+    "question": "Phone case style",
+    "options": [
+      "Clear",
+      "Pattern",
+      "No case"
+    ]
+  },
+  {
+    "question": "Breakfast protein",
+    "options": [
+      "Eggs",
+      "Greek yogurt",
+      "Peanut butter"
+    ]
+  },
+  {
+    "question": "Quick pick-me-up",
+    "options": [
+      "Pep talk",
+      "Stretch",
+      "Music"
+    ]
+  },
+  {
+    "question": "Pocket companion (imaginary)",
+    "options": [
+      "Mini robot",
+      "Mini wizard",
+      "Mini sloth"
+    ]
+  },
+  {
+    "question": "Photo subject",
+    "options": [
+      "Food",
+      "People",
+      "Landscapes"
+    ]
+  },
+  {
+    "question": "Cupcake topping",
+    "options": [
+      "Sprinkles",
+      "Fruit",
+      "Chocolate shavings"
+    ]
   }
 ]
-
-
-

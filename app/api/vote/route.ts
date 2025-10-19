@@ -5,7 +5,7 @@ import { Poll } from '@/lib/types';
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { pollId, optionIdx, proof, signal, action } = body;
+  const { pollId, optionIdx, proof } = body;
 
   if (!pollId || typeof optionIdx !== 'number' || !proof) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
@@ -52,18 +52,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const expectedAction = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
-    if (!expectedAction) throw new Error("Action ID is not configured.");
-
-    if (action && action !== expectedAction) {
-      console.warn('Mismatched action from client', { action, expectedAction });
-      return NextResponse.json({ error: 'Invalid verification action.' }, { status: 400 });
-    }
-
-    const actionId = expectedAction;
+    const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE;
+    if (!actionId) throw new Error("Action ID is not configured.");
 
     console.log("Server: Verifying proof...");
-    const { isHuman, nullifier_hash, code } = await verifyProof(proof, actionId, signal);
+    const { isHuman, nullifier_hash, code } = await verifyProof(proof, actionId);
 
     if (!isHuman) {
       if (code === 'max_verifications_reached') {
@@ -78,7 +71,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Production rule: enforce one-human-one-vote via composite PK (poll_id, nullifier_hash)
+    // Insert vote with composite primary key (poll_id, nullifier_hash)
     const { error: voteError } = await supabase
       .from('vote')
       .insert({
@@ -97,6 +90,7 @@ export async function POST(request: Request) {
       throw voteError;
     }
 
+    // Get updated results
     const { data: results, error: resultsError } = await supabase
       .from('poll_results')
       .select('counts, total_votes')

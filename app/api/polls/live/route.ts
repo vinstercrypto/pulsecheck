@@ -13,23 +13,13 @@ export async function GET() {
     return NextResponse.json({ error: 'Invalid configuration' }, { status: 500 });
   }
 
-  // Get the start of today in UTC
-  const todayStart = new Date(now);
-  todayStart.setUTCHours(0, 0, 0, 0);
-  
-  const tomorrowStart = new Date(todayStart);
-  tomorrowStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
-
-  // Find polls that are live right now (start_ts <= now < end_ts)
-  // and started today, limited by DAILY_POLL_COUNT
+  // Find polls that are live right now (status='live' and start_ts <= now < end_ts)
   const { data: livePolls, error: liveError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'live')
     .lte('start_ts', now)
     .gte('end_ts', now)
-    .gte('start_ts', todayStart.toISOString())
-    .lt('start_ts', tomorrowStart.toISOString())
     .order('start_ts', { ascending: true })
     .limit(dailyPollCount);
 
@@ -48,16 +38,14 @@ export async function GET() {
     return NextResponse.json({ polls: parsedPolls });
   }
 
-  // If no live polls, find the next scheduled poll(s) for today
+  // If no live polls, find the next scheduled poll
   const { data: scheduledPolls, error: scheduledError } = await supabase
     .from('poll')
     .select('*')
     .eq('status', 'scheduled')
     .gt('start_ts', now)
-    .gte('start_ts', todayStart.toISOString())
-    .lt('start_ts', tomorrowStart.toISOString())
     .order('start_ts', { ascending: true })
-    .limit(dailyPollCount);
+    .limit(1);
 
   if (scheduledError) {
     console.error('Error fetching scheduled polls:', scheduledError);

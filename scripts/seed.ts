@@ -43,34 +43,71 @@ async function seed() {
     console.warn(`Warning: Need at least ${30 * DAILY_POLL_COUNT} questions for 30 days, found ${pollsData.length}`);
   }
 
-  // Generate 30 days of polls
+  // Generate polls starting NOW
   const pollsToInsert = [];
-  const now = new Date();
-  
-  // Start from 15 days ago to have historical data
-  const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - 15);
-  startDate.setHours(0, 0, 0, 0);
+  const nowUtc = new Date();
+  // Round up to nearest minute
+  nowUtc.setSeconds(0, 0);
+  if (nowUtc.getMinutes() !== 0) {
+    nowUtc.setMinutes(nowUtc.getMinutes() + 1);
+  }
 
-  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+  console.log(`Starting polls from: ${nowUtc.toISOString()}`);
+
+  // TODAY: Create immediate live poll(s)
+  for (let pollIndex = 0; pollIndex < DAILY_POLL_COUNT; pollIndex++) {
+    const questionIndex = pollIndex;
+    if (questionIndex >= pollsData.length) break;
+
+    const pollData = pollsData[questionIndex];
+    
+    let start_ts: Date;
+    let end_ts: Date;
+    let status: 'live' | 'scheduled';
+
+    if (DAILY_POLL_COUNT === 1) {
+      // Single poll: 24 hours starting now
+      start_ts = new Date(nowUtc);
+      end_ts = new Date(nowUtc.getTime() + 24 * 60 * 60 * 1000);
+      status = 'live';
+    } else {
+      // Two polls: first starts now (8h), second starts in 8h (8h)
+      if (pollIndex === 0) {
+        start_ts = new Date(nowUtc);
+        end_ts = new Date(nowUtc.getTime() + 8 * 60 * 60 * 1000);
+        status = 'live';
+      } else {
+        start_ts = new Date(nowUtc.getTime() + 8 * 60 * 60 * 1000);
+        end_ts = new Date(nowUtc.getTime() + 16 * 60 * 60 * 1000);
+        status = 'scheduled';
+      }
+    }
+
+    pollsToInsert.push({
+      question: pollData.question,
+      options: JSON.stringify(pollData.options),
+      start_ts: start_ts.toISOString(),
+      end_ts: end_ts.toISOString(),
+      status: status
+    });
+  }
+
+  // REMAINING DAYS: Fill forward day-buckets in UTC
+  const startDate = new Date(nowUtc);
+  startDate.setUTCDate(startDate.getUTCDate() + 1);
+  startDate.setUTCHours(0, 0, 0, 0);
+
+  for (let dayOffset = 0; dayOffset < 29; dayOffset++) {
     const currentDay = new Date(startDate);
-    currentDay.setDate(currentDay.getDate() + dayOffset);
+    currentDay.setUTCDate(currentDay.getUTCDate() + dayOffset);
 
     for (let pollIndex = 0; pollIndex < DAILY_POLL_COUNT; pollIndex++) {
-      const questionIndex = dayOffset * DAILY_POLL_COUNT + pollIndex;
-      if (questionIndex >= pollsData.length) {
-        // Wrap around if we run out of questions
-        break;
-      }
+      const questionIndex = (dayOffset + 1) * DAILY_POLL_COUNT + pollIndex;
+      if (questionIndex >= pollsData.length) break;
 
       const pollData = pollsData[questionIndex];
       
       // Non-overlapping time windows
-      // If DAILY_POLL_COUNT = 1: 09:00-09:00+1day (24 hours)
-      // If DAILY_POLL_COUNT = 2: 
-      //   - Poll 0: 09:00-17:00 (8 hours)
-      //   - Poll 1: 17:00-01:00 (8 hours)
-      
       let startHour: number;
       let durationHours: number;
 
@@ -89,20 +126,13 @@ async function seed() {
       }
 
       const start_ts = new Date(currentDay);
-      start_ts.setHours(startHour, 0, 0, 0);
+      start_ts.setUTCHours(startHour, 0, 0, 0);
 
       const end_ts = new Date(start_ts);
-      end_ts.setHours(end_ts.getHours() + durationHours);
+      end_ts.setUTCHours(end_ts.getUTCHours() + durationHours);
 
-      // Determine status based on current time
-      let status: 'scheduled' | 'live' | 'closed';
-      if (now < start_ts) {
-        status = 'scheduled';
-      } else if (now >= start_ts && now < end_ts) {
-        status = 'live';
-      } else {
-        status = 'closed';
-      }
+      // All future polls are scheduled
+      const status = 'scheduled';
 
       pollsToInsert.push({
         question: pollData.question,
@@ -145,6 +175,21 @@ async function seed() {
     console.log(`  Live: ${counts.live || 0}`);
     console.log(`  Closed: ${counts.closed || 0}`);
     console.log(`  Total: ${statusCounts.length}`);
+  }
+
+  // Show live polls
+  const { data: livePolls } = await supabase
+    .from('poll')
+    .select('question, start_ts, end_ts')
+    .eq('status', 'live')
+    .order('start_ts', { ascending: true });
+
+  if (livePolls && livePolls.length > 0) {
+    console.log('\n🎯 Currently LIVE polls:');
+    livePolls.forEach((poll, idx) => {
+      console.log(`   ${idx + 1}. ${poll.question}`);
+      console.log(`      Ends: ${new Date(poll.end_ts).toLocaleString()}`);
+    });
   }
 }
 
