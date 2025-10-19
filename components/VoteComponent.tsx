@@ -37,6 +37,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [banner, setBanner] = useState<string>("");
+  const [bannerKind, setBannerKind] = useState<"success" | "info" | "warning" | "error">("info");
   const [results, setResults] = useState<PollWithResults | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
@@ -48,10 +49,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   useEffect(() => {
     const votedKey = `voted:${poll.id}`;
     const voted = localStorage.getItem(votedKey) === "1";
-    setHasVoted(voted);
     
     if (voted) {
+      setHasVoted(true);
       setBanner(MSG_ALREADY);
+      setBannerKind("info");
       // Load current aggregates for this poll
       loadPollResults();
     }
@@ -75,6 +77,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     if (selectedOption === null || hasVoted) return;
     if (!MiniKit.isInstalled()) {
       setBanner(MSG_VERIFY);
+      setBannerKind("error");
       return;
     }
 
@@ -93,6 +96,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       if (finalPayload.status === 'error') {
         setBanner(MSG_VERIFY);
+        setBannerKind("error");
         setIsLoading(false);
         return;
       }
@@ -102,6 +106,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     } catch (err: any) {
       console.error('Verification error:', err);
       setBanner(MSG_VERIFY);
+      setBannerKind("error");
       setIsLoading(false);
     }
   };
@@ -137,6 +142,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         // Success - first vote
         setHasVoted(true);
         setBanner(MSG_THANKS);
+        setBannerKind("success");
         localStorage.setItem(`voted:${poll.id}`, "1");
         
         if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
@@ -154,6 +160,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         // Duplicate vote - show aggregates
         setHasVoted(true);
         setBanner(MSG_ALREADY);
+        setBannerKind("info");
         localStorage.setItem(`voted:${poll.id}`, "1");
         
         if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
@@ -170,15 +177,20 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       } else if (res.status === 403) {
         // Closed window
         setBanner(MSG_CLOSED);
+        setBannerKind("warning");
       } else if (res.status === 401) {
         setBanner(MSG_VERIFY);
+        setBannerKind("error");
       } else {
         // Other errors
-        setBanner(MSG_GENERIC);
+        console.error('Vote error response:', data);
+        setBanner(data.error || MSG_GENERIC);
+        setBannerKind("error");
       }
     } catch (err: any) {
-      setBanner(MSG_GENERIC);
       console.error('Vote submission failed:', err);
+      setBanner(MSG_GENERIC);
+      setBannerKind("error");
     } finally {
       setIsLoading(false);
     }
@@ -199,6 +211,15 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     return (
       <div className="bg-brand-gray-900 rounded-lg p-6 shadow-lg w-full">
         <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">{results.question}</h2>
+        
+        {banner && (
+          <Banner 
+            kind={bannerKind} 
+            message={banner} 
+            onClose={dismiss} 
+          />
+        )}
+        
         <div className="space-y-3">
           {pollResultsData.map((res, index) => (
             <div key={index}>
@@ -212,13 +233,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         <p className="text-center mt-6 text-brand-gray-300 font-medium">
           Total Votes: {results.total_votes.toLocaleString()}
         </p>
-        {banner && (
-          <Banner 
-            kind={hasVoted ? "success" : "info"} 
-            message={banner} 
-            onClose={dismiss} 
-          />
-        )}
       </div>
     );
   }
@@ -226,6 +240,15 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   return (
     <div className="bg-brand-gray-900 rounded-lg p-6 shadow-lg w-full">
       <h2 className="text-xl md:text-2xl font-semibold mb-6 text-white">{poll.question}</h2>
+      
+      {banner && (
+        <Banner 
+          kind={bannerKind} 
+          message={banner} 
+          onClose={dismiss} 
+        />
+      )}
+      
       <div className="space-y-3 mb-6">
         {poll.options.map((option, index) => (
           <button
@@ -244,19 +267,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           </button>
         ))}
       </div>
-
-      {banner && (
-        <Banner 
-          kind={
-            banner === MSG_THANKS ? "success" :
-            banner === MSG_ALREADY ? "info" :
-            banner === MSG_CLOSED ? "warning" :
-            banner === MSG_VERIFY ? "error" : "info"
-          } 
-          message={banner} 
-          onClose={dismiss} 
-        />
-      )}
 
       <button
         onClick={handleVerifyClick}
