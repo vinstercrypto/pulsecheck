@@ -8,8 +8,8 @@ interface VerifyReply {
 }
 
 /**
- * Server-side Verify v2 using MiniKit's cloud verifier.
- * IMPORTANT: pass the SAME `signal` the client used (we use pollId).
+ * Server-side Verify v2 using MiniKit cloud verifier.
+ * IMPORTANT: pass the SAME `signal` the client used (we use the raw pollId UUID).
  */
 export async function verifyProof(
   payload: ISuccessResult,
@@ -22,22 +22,27 @@ export async function verifyProof(
   if (!WLD_APP_ID) throw new Error("WLD_APP_ID not configured");
   if (!actionId) throw new Error("WLD_ACTION_ID_VOTE not configured");
 
+  // Diagnostics: ensure signal matches pollId exactly (no prefixes)
+  console.log("=== WORLD ID VERIFY v2 ===");
+  console.log("app_id:", WLD_APP_ID);
+  console.log("action:", actionId);
+  console.log("signal:", signal);
+
   try {
     const verifyRes = await verifyCloudProof(
       payload,
       WLD_APP_ID,
       actionId,
-      signal,
+      signal, // EXACTLY the same value used on client: poll.id
       WLD_VERIFY_ENDPOINT ? { endpoint: WLD_VERIFY_ENDPOINT } : undefined
     );
 
     if (verifyRes?.success) {
       return {
         isHuman: true,
-        nullifier_hash: String(payload.nullifier_hash ?? "").toLowerCase(), // normalize here
+        nullifier_hash: String(payload.nullifier_hash ?? "").toLowerCase(), // normalize
       };
     }
-
     return {
       isHuman: false,
       nullifier_hash: String(payload.nullifier_hash ?? "").toLowerCase(),
