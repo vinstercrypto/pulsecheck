@@ -9,7 +9,7 @@ interface VerifyReply {
 
 /**
  * Server-side Verify v2 using MiniKit cloud verifier.
- * IMPORTANT: pass the SAME `signal` the client used (we use the raw pollId UUID).
+ * IMPORTANT: pass the SAME `signal` the client used (raw pollId UUID).
  */
 export async function verifyProof(
   payload: ISuccessResult,
@@ -17,30 +17,31 @@ export async function verifyProof(
   signal: string
 ): Promise<VerifyReply> {
   const WLD_APP_ID = process.env.WLD_APP_ID as `app_${string}`;
-  const WLD_VERIFY_ENDPOINT = process.env.WLD_VERIFY_ENDPOINT;
+  const WLD_VERIFY_ENDPOINT = process.env.WLD_VERIFY_ENDPOINT; // string or undefined
 
   if (!WLD_APP_ID) throw new Error("WLD_APP_ID not configured");
   if (!actionId) throw new Error("WLD_ACTION_ID_VOTE not configured");
 
-  // Diagnostics: ensure signal matches pollId exactly (no prefixes)
+  // Diagnostics
   console.log("=== WORLD ID VERIFY v2 ===");
   console.log("app_id:", WLD_APP_ID);
   console.log("action:", actionId);
   console.log("signal:", signal);
 
   try {
+    // NOTE: last param is a string/URL, not an object
     const verifyRes = await verifyCloudProof(
       payload,
       WLD_APP_ID,
       actionId,
-      signal, // EXACTLY the same value used on client: poll.id
-      WLD_VERIFY_ENDPOINT ? { endpoint: WLD_VERIFY_ENDPOINT } : undefined
+      signal,
+      WLD_VERIFY_ENDPOINT || undefined
     );
 
     if (verifyRes?.success) {
       return {
         isHuman: true,
-        nullifier_hash: String(payload.nullifier_hash ?? "").toLowerCase(), // normalize
+        nullifier_hash: String(payload.nullifier_hash ?? "").toLowerCase(),
       };
     }
     return {
