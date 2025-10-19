@@ -9,7 +9,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { pollId, optionIdx, proof } = body || {};
 
+    console.log("Vote request received:", { pollId, optionIdx, hasProof: !!proof });
+
     if (!pollId || typeof optionIdx !== "number" || !proof) {
+      console.error("Bad request - missing fields:", { pollId, optionIdx: typeof optionIdx, hasProof: !!proof });
       return NextResponse.json({ error: "bad_request" }, { status: 400 });
     }
 
@@ -19,7 +22,10 @@ export async function POST(request: Request) {
       .select("id, options, start_ts, end_ts, status")
       .eq("id", pollId)
       .single<Pick<Poll, "id" | "options" | "start_ts" | "end_ts" | "status">>();
-    if (pollError || !poll) return NextResponse.json({ error: "poll_not_found" }, { status: 404 });
+    if (pollError || !poll) {
+      console.error("Poll not found:", pollError);
+      return NextResponse.json({ error: "poll_not_found" }, { status: 404 });
+    }
 
     // Options as array
     const options =
@@ -29,6 +35,7 @@ export async function POST(request: Request) {
             try { return JSON.parse(poll.options as unknown as string); } catch { return []; }
           })();
     if (!Array.isArray(options) || optionIdx < 0 || optionIdx >= options.length) {
+      console.error("Invalid option:", { optionIdx, optionsLength: options.length });
       return NextResponse.json({ error: "invalid_option" }, { status: 400 });
     }
 
@@ -37,13 +44,22 @@ export async function POST(request: Request) {
     const now = new Date();
     const ps = new Date(poll.start_ts);
     const pe = new Date(poll.end_ts);
-    if (now < dayStart || now > dayEnd) return NextResponse.json({ error: "closed" }, { status: 403 });
-    if (!(ps <= now && now < pe)) return NextResponse.json({ error: "closed" }, { status: 403 });
+    if (now < dayStart || now > dayEnd) {
+      console.error("Outside ET day window");
+      return NextResponse.json({ error: "closed" }, { status: 403 });
+    }
+    if (!(ps <= now && now < pe)) {
+      console.error("Outside poll window");
+      return NextResponse.json({ error: "closed" }, { status: 403 });
+    }
 
     // Verify with SAME signal = raw pollId (no prefixes)
     const actionId = process.env.WLD_ACTION_ID_VOTE!;
     const v = await verifyProof(proof, actionId, pollId);
-    if (!v.isHuman || !v.nullifier_hash) return NextResponse.json({ error: "verify" }, { status: 401 });
+    if (!v.isHuman || !v.nullifier_hash) {
+      console.error("Verification failed:", v);
+      return NextResponse.json({ error: "verify" }, { status: 401 });
+    }
     const nullifier = v.nullifier_hash; // already lowercased
 
     // Insert; rely on PK (poll_id, nullifier_hash)
@@ -86,6 +102,7 @@ export async function POST(request: Request) {
     console.log("vote", pollId, nullifier, "→ 200 ok");
     return NextResponse.json({ totalsPerOption, totalVotes }, { status: 200 });
   } catch (e) {
+    console.error("Vote API exception:", e);
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 }
