@@ -97,7 +97,6 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({
-          error: "You've already voted today.",
           totalsPerOption,
           totalVotes: results.total_votes,
         }, { status: 409 });
@@ -122,7 +121,6 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      message: 'Vote successful',
       totalsPerOption,
       totalVotes: results.total_votes,
     });

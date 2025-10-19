@@ -13,8 +13,6 @@ interface VoteComponentProps {
   poll: Poll;
 }
 
-type VoteState = "idle" | "submitting" | "voted" | "duplicate" | "closed";
-
 const ProgressBar = ({ percent, label }: { percent: number; label: string }) => (
   <div className="w-full bg-brand-gray-700 rounded-full h-8 flex items-center relative overflow-hidden">
     <div
@@ -30,19 +28,20 @@ const ProgressBar = ({ percent, label }: { percent: number; label: string }) => 
 
 export default function VoteComponent({ poll }: VoteComponentProps) {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [voteState, setVoteState] = useState<VoteState>("idle");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<PollWithResults | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
 
   const actionId = process.env.NEXT_PUBLIC_WLD_ACTION_ID_VOTE || 'vote';
 
   // Check localStorage on mount
   useEffect(() => {
     const votedKey = `voted:${poll.id}`;
-    const hasVoted = localStorage.getItem(votedKey) === "1";
+    const voted = localStorage.getItem(votedKey) === "1";
+    setHasVoted(voted);
     
-    if (hasVoted) {
-      setVoteState("duplicate");
+    if (voted) {
       // Load current aggregates for this poll
       loadPollResults();
     }
@@ -63,13 +62,13 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
   };
 
   const handleVerifyClick = async () => {
-    if (selectedOption === null || voteState !== "idle") return;
+    if (selectedOption === null || hasVoted) return;
     if (!MiniKit.isInstalled()) {
       setError('Open this in World App. Orb-verified humans only.');
       return;
     }
 
-    setVoteState("submitting");
+    setIsLoading(true);
     setError(null);
 
     try {
@@ -84,7 +83,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       if (finalPayload.status === 'error') {
         setError(finalPayload.error_code || 'Verification failed');
-        setVoteState("idle");
+        setIsLoading(false);
         return;
       }
 
@@ -93,7 +92,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
     } catch (err: any) {
       console.error('Verification error:', err);
       setError(`Verification failed: ${err?.message ?? String(err)}`);
-      setVoteState("idle");
+      setIsLoading(false);
     }
   };
 
@@ -126,7 +125,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
 
       if (res.status === 200) {
         // Success - first vote
-        setVoteState("voted");
+        setHasVoted(true);
         localStorage.setItem(`voted:${poll.id}`, "1");
         
         if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
@@ -142,7 +141,7 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         }
       } else if (res.status === 409) {
         // Duplicate vote - show aggregates
-        setVoteState("duplicate");
+        setHasVoted(true);
         localStorage.setItem(`voted:${poll.id}`, "1");
         
         if (typeof data.totalVotes === 'number' && Array.isArray(data.totalsPerOption)) {
@@ -158,16 +157,16 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         }
       } else if (res.status === 403) {
         // Closed window
-        setVoteState("closed");
+        setError('Voting is closed. New questions arrive at 12:00 AM Eastern.');
       } else {
         // Other errors
         setError(data.error ?? 'Vote failed');
-        setVoteState("idle");
       }
     } catch (err: any) {
       setError(`Vote submission failed: ${err?.message ?? String(err)}`);
-      setVoteState("idle");
       console.error('Vote submission failed:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -181,34 +180,6 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
       return { label: option, percentage, count };
     });
   }, [results]);
-
-  const getBannerMessage = () => {
-    switch (voteState) {
-      case "voted":
-        return "Thanks for your vote—come back tomorrow for new questions.";
-      case "duplicate":
-        return "You've already voted today.";
-      case "closed":
-        return "Voting is closed. New questions arrive at 12:00 AM Eastern.";
-      default:
-        return null;
-    }
-  };
-
-  const getBannerColor = () => {
-    switch (voteState) {
-      case "voted":
-        return "bg-green-900 border-green-700 text-green-200";
-      case "duplicate":
-        return "bg-yellow-900 border-yellow-700 text-yellow-200";
-      case "closed":
-        return "bg-red-900 border-red-700 text-red-200";
-      default:
-        return "";
-    }
-  };
-
-  const isDisabled = voteState !== "idle";
 
   if (results && pollResultsData) {
     return (
@@ -227,9 +198,9 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         <p className="text-center mt-6 text-brand-gray-300 font-medium">
           Total Votes: {results.total_votes.toLocaleString()}
         </p>
-        {getBannerMessage() && (
-          <div className={`mt-4 p-4 border rounded-lg text-center ${getBannerColor()}`}>
-            {getBannerMessage()}
+        {hasVoted && (
+          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
+            Thanks for your vote—come back tomorrow for new questions.
           </div>
         )}
       </div>
@@ -244,11 +215,11 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
           <button
             key={index}
             onClick={() => setSelectedOption(index)}
-            disabled={isDisabled}
+            disabled={hasVoted}
             className={`w-full p-4 rounded-lg text-left font-medium transition-all duration-200 border-2 ${
               selectedOption === index
                 ? 'bg-blue-500 border-blue-400 text-white'
-                : isDisabled
+                : hasVoted
                 ? 'bg-brand-gray-600 border-brand-gray-500 text-brand-gray-400 cursor-not-allowed'
                 : 'bg-brand-gray-800 border-brand-gray-700 hover:border-blue-500'
             }`}
@@ -264,18 +235,18 @@ export default function VoteComponent({ poll }: VoteComponentProps) {
         </div>
       )}
 
-      {getBannerMessage() && (
-        <div className={`mb-4 p-4 border rounded-lg text-center ${getBannerColor()}`}>
-          {getBannerMessage()}
+      {hasVoted && (
+        <div className="mb-4 p-4 bg-green-900 border border-green-700 rounded-lg text-green-200 text-center">
+          Thanks for your vote—come back tomorrow for new questions.
         </div>
       )}
 
       <button
         onClick={handleVerifyClick}
-        disabled={selectedOption === null || isDisabled || voteState === "submitting"}
+        disabled={selectedOption === null || hasVoted || isLoading}
         className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg disabled:bg-brand-gray-600 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
       >
-        {voteState === "submitting" ? 'Verifying...' : 'Verify & Cast Vote'}
+        {isLoading ? 'Verifying...' : 'Verify & Cast Vote'}
       </button>
     </div>
   );
