@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/db";
+import { supabase=pulsecheckApp } from "@/lib/db";
 import { verifyProof } from "@/lib/worldid";
 import { getEasternTodayWindow } from "@/lib/time";
 import type { Poll } from "@/lib/types";
@@ -44,6 +44,19 @@ export async function POST(request: Request) {
     const now = new Date();
     const ps = new Date(poll.start_ts);
     const pe = new Date(poll.end_ts);
+    
+    // Debug timezone logic
+    console.log("=== TIMEZONE DEBUG ===");
+    console.log("Current UTC time:", now.toISOString());
+    console.log("Eastern day start:", dayStart.toISOString());
+    console.log("Eastern day end:", dayEnd.toISOString());
+    console.log("Poll start:", ps.toISOString());
+    console.log("Poll end:", pe.toISOString());
+    console.log("Now < dayStart:", now < dayStart);
+    console.log("Now > dayEnd:", now > dayEnd);
+    console.log("ps <= now:", ps <= now);
+    console.log("now < pe:", now < pe);
+    
     if (now < dayStart || now > dayEnd) {
       console.error("Outside ET day window");
       return NextResponse.json({ error: "closed" }, { status: 403 });
