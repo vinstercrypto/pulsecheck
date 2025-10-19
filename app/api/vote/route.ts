@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase=pulsecheckApp } from "@/lib/db";
+import { supabase } from "@/lib/db";
 import { verifyProof } from "@/lib/worldid";
 import { getEasternTodayWindow } from "@/lib/time";
 import type { Poll } from "@/lib/types";
@@ -57,10 +57,19 @@ export async function POST(request: Request) {
     console.log("ps <= now:", ps <= now);
     console.log("now < pe:", now < pe);
     
+    // More lenient check: if poll is live and within Eastern day, allow voting
+    if (poll.status !== 'live') {
+      console.error("Poll not live:", poll.status);
+      return NextResponse.json({ error: "closed" }, { status: 403 });
+    }
+    
+    // Check if we're within the Eastern day window
     if (now < dayStart || now > dayEnd) {
       console.error("Outside ET day window");
       return NextResponse.json({ error: "closed" }, { status: 403 });
     }
+    
+    // Check if we're within the poll's time window (more lenient)
     if (!(ps <= now && now < pe)) {
       console.error("Outside poll window");
       return NextResponse.json({ error: "closed" }, { status: 403 });
