@@ -1,7 +1,6 @@
 import VoteComponent from "@/components/VoteComponent";
 import { Poll } from "@/lib/types";
 import { supabase } from "@/lib/db";
-import { getEasternTodayWindow } from "@/lib/time";
 
 interface LivePollsResponse {
   polls: Poll[];
@@ -9,16 +8,15 @@ interface LivePollsResponse {
 }
 
 async function getLivePolls(): Promise<LivePollsResponse> {
+  const nowIso = new Date().toISOString();
   const dailyPollCount = parseInt(process.env.DAILY_POLL_COUNT || "1", 10);
-  const { start: easternDayStart, end: easternDayEnd } = getEasternTodayWindow();
 
-  // live polls overlapping today's ET window
+  // Live = start_ts <= now < end_ts (no status/day constraints)
   const { data: livePolls, error } = await supabase
     .from("poll")
     .select("*")
-    .eq("status", "live")
-    .lte("start_ts", easternDayEnd.toISOString())
-    .gte("end_ts", easternDayStart.toISOString())
+    .lte("start_ts", nowIso)
+    .gt("end_ts", nowIso)
     .order("start_ts", { ascending: true })
     .limit(dailyPollCount);
 
@@ -30,12 +28,11 @@ async function getLivePolls(): Promise<LivePollsResponse> {
     return { polls: parsedPolls };
   }
 
-  // next scheduled poll after today's ET window
+  // next scheduled poll globally
   const { data: scheduledPolls } = await supabase
     .from("poll")
     .select("*")
-    .eq("status", "scheduled")
-    .gt("start_ts", easternDayEnd.toISOString())
+    .gt("start_ts", nowIso)
     .order("start_ts", { ascending: true })
     .limit(1);
 

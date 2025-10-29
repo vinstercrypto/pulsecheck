@@ -1,29 +1,22 @@
 import { supabase } from '@/lib/db';
-import { getEasternTodayWindow } from '@/lib/time';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const now = new Date().toISOString();
-  
-  // Get DAILY_POLL_COUNT from environment (default: 1, allowed: 1 or 2)
+  const nowIso = new Date().toISOString();
+
+  // DAILY_POLL_COUNT (default 1, allowed 1 or 2)
   const dailyPollCountRaw = process.env.DAILY_POLL_COUNT || '1';
-  const dailyPollCount = parseInt(dailyPollCountRaw);
-  
+  const dailyPollCount = parseInt(dailyPollCountRaw, 10);
   if (![1, 2].includes(dailyPollCount)) {
-    console.error('DAILY_POLL_COUNT must be 1 or 2, got:', dailyPollCountRaw);
     return NextResponse.json({ error: 'Invalid configuration' }, { status: 500 });
   }
 
-  // Get Eastern timezone day window
-  const { start: easternDayStart, end: easternDayEnd } = getEasternTodayWindow();
-
-  // Find polls that are live for today's Eastern day
+  // Live = strictly time-boxed: start_ts <= now < end_ts (no status/day constraints)
   const { data: livePolls, error: liveError } = await supabase
     .from('poll')
     .select('*')
-    .eq('status', 'live')
-    .lte('start_ts', easternDayEnd.toISOString())
-    .gte('end_ts', easternDayStart.toISOString())
+    .lte('start_ts', nowIso)
+    .gt('end_ts', nowIso)
     .order('start_ts', { ascending: true })
     .limit(dailyPollCount);
 
@@ -33,34 +26,30 @@ export async function GET() {
   }
 
   if (livePolls && livePolls.length > 0) {
-    const parsedPolls = livePolls.map(poll => ({
-      ...poll,
-      options: typeof poll.options === 'string' 
-        ? JSON.parse(poll.options) 
-        : poll.options
+    const parsed = livePolls.map(p => ({
+      ...p,
+      options: typeof p.options === 'string' ? JSON.parse(p.options as unknown as string) : p.options,
     }));
-    return NextResponse.json({ polls: parsedPolls });
+    return NextResponse.json({ polls: parsed });
   }
 
-  // If no live polls for today, find the next scheduled poll
-  const { data: scheduledPolls, error: scheduledError } = await supabase
+  // If none live, return the next upcoming poll anywhere in the future
+  const { data: upcoming, error: upError } = await supabase
     .from('poll')
     .select('*')
-    .eq('status', 'scheduled')
-    .gt('start_ts', easternDayEnd.toISOString())
+    .gt('start_ts', nowIso)
     .order('start_ts', { ascending: true })
-    .limit(1);
+    .limit(dailyPollCount);
 
-  if (scheduledError) {
-    console.error('Error fetching scheduled polls:', scheduledError);
+  if (upError) {
+    console.error('Error fetching upcoming polls:', upError);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
-  if (scheduledPolls && scheduledPolls.length > 0) {
-    const nextPoll = scheduledPolls[0];
-    const startsInSeconds = (new Date(nextPoll.start_ts).getTime() - new Date().getTime()) / 1000;
+  if (upcoming && upcoming.length > 0) {
+    const startsInSeconds = (new Date(upcoming[0].start_ts).getTime() - new Date(nowIso).getTime()) / 1000;
     return NextResponse.json({ polls: [], starts_in_seconds: startsInSeconds });
   }
-  
+
   return NextResponse.json({ polls: [] });
 }
