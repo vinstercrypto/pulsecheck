@@ -28,11 +28,11 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
       if (WLD_VERIFY_ENDPOINT) {
         console.log("Using custom endpoint:", WLD_VERIFY_ENDPOINT);
         verifyRes = await verifyCloudProof(
-          payload, 
-          WLD_APP_ID, 
-          actionId, 
+          payload,
+          WLD_APP_ID,
+          actionId,
           signal,
-          { endpoint: WLD_VERIFY_ENDPOINT }
+          new URL(WLD_VERIFY_ENDPOINT)
         );
       } else {
         console.log("Using default endpoint");
@@ -49,12 +49,7 @@ export async function verifyProof(payload: ISuccessResult, actionId: string, sig
       // If custom endpoint fails, try default endpoint
       if (WLD_VERIFY_ENDPOINT) {
         console.log("Falling back to default endpoint");
-        verifyRes = await verifyCloudProof(
-          payload, 
-          WLD_APP_ID, 
-          actionId, 
-          signal
-        );
+        verifyRes = await verifyCloudProof(payload, WLD_APP_ID, actionId, signal);
       } else {
         throw endpointError;
       }
