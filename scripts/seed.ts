@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getEasternMidnightNextUtc, getEasternTodayWindowUtc } from '@/lib/time';
 
 dotenv.config({ path: '.env.local' });
 
@@ -66,9 +67,12 @@ async function seed() {
     let status: 'live' | 'scheduled';
 
     if (DAILY_POLL_COUNT === 1) {
-      // Single poll: 24 hours starting now
+      // Single poll: from now until next Eastern midnight
+      const { startUtc: todayStartUtc } = getEasternTodayWindowUtc();
+      const nextEtMidnightUtc = getEasternMidnightNextUtc();
+      // If now is before today's ET midnight start, start at now; otherwise start at now as well
       start_ts = new Date(nowUtc);
-      end_ts = new Date(nowUtc.getTime() + 24 * 60 * 60 * 1000);
+      end_ts = nextEtMidnightUtc;
       status = 'live';
     } else {
       // Two polls: first starts now (8h), second starts in 8h (8h)
@@ -108,31 +112,32 @@ async function seed() {
       const pollData = pollsData[questionIndex];
       
       // Non-overlapping time windows
-      let startHour: number;
-      let durationHours: number;
+      let start_ts: Date;
+      let end_ts: Date;
+      let status: 'live' | 'scheduled';
 
       if (DAILY_POLL_COUNT === 1) {
-        startHour = 9; // 09:00 UTC
-        durationHours = 24;
+        // Future single polls: midnight ET to next midnight ET
+        // Compute ET midnight for the future day by taking today's window and adding dayOffset+1 days
+        const base = getEasternMidnightNextUtc(); // next ET midnight from now
+        const startEtUtc = new Date(base.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+        const endEtUtc = new Date(startEtUtc.getTime() + 24 * 60 * 60 * 1000);
+        start_ts = startEtUtc;
+        end_ts = endEtUtc;
+        status = 'scheduled';
       } else {
-        // DAILY_POLL_COUNT === 2
+        // DAILY_POLL_COUNT === 2 (keep simple UTC buckets of 8h each starting at next ET midnight)
+        const base = getEasternMidnightNextUtc();
+        const dayStartUtc = new Date(base.getTime() + dayOffset * 24 * 60 * 60 * 1000);
         if (pollIndex === 0) {
-          startHour = 9; // 09:00 UTC
-          durationHours = 8;
+          start_ts = new Date(dayStartUtc);
+          end_ts = new Date(dayStartUtc.getTime() + 8 * 60 * 60 * 1000);
         } else {
-          startHour = 17; // 17:00 UTC
-          durationHours = 8;
+          start_ts = new Date(dayStartUtc.getTime() + 8 * 60 * 60 * 1000);
+          end_ts = new Date(dayStartUtc.getTime() + 16 * 60 * 60 * 1000);
         }
+        status = 'scheduled';
       }
-
-      const start_ts = new Date(currentDay);
-      start_ts.setUTCHours(startHour, 0, 0, 0);
-
-      const end_ts = new Date(start_ts);
-      end_ts.setUTCHours(end_ts.getUTCHours() + durationHours);
-
-      // All future polls are scheduled
-      const status = 'scheduled';
 
       pollsToInsert.push({
         question: pollData.question,

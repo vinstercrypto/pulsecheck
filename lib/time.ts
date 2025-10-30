@@ -47,6 +47,23 @@ export function getEasternTodayWindow(): { start: Date; end: Date } {
   return { start, end };
 }
 
+/**
+ * Returns UTC Date objects that represent the start and end of the current Eastern day.
+ * This is useful when storing timestamps in UTC while aligning windows to ET.
+ */
+export function getEasternTodayWindowUtc(): { startUtc: Date; endUtc: Date } {
+  const nowUtc = new Date();
+  const easternNow = getEasternNow();
+  // Offset between UTC and Eastern in ms (UTC - ET)
+  const offsetMs = nowUtc.getTime() - easternNow.getTime();
+
+  const { start, end } = getEasternTodayWindow();
+  // Translate ET-local Date objects to their corresponding UTC instants
+  const startUtc = new Date(start.getTime() + offsetMs);
+  const endUtc = new Date(end.getTime() + offsetMs);
+  return { startUtc, endUtc };
+}
+
 export function isWithinEasternDay(date: Date): boolean {
   const { start, end } = getEasternTodayWindow();
   return date >= start && date <= end;
@@ -58,4 +75,15 @@ export function getEasternMidnightNext(): Date {
   midnightNext.setDate(midnightNext.getDate() + 1);
   midnightNext.setHours(0, 0, 0, 0);
   return midnightNext;
+}
+
+/**
+ * Returns the next Eastern midnight as a UTC Date (useful for end_ts scheduling).
+ */
+export function getEasternMidnightNextUtc(): Date {
+  const nowUtc = new Date();
+  const easternNow = getEasternNow();
+  const offsetMs = nowUtc.getTime() - easternNow.getTime();
+  const midnightNextEt = getEasternMidnightNext();
+  return new Date(midnightNextEt.getTime() + offsetMs);
 }
