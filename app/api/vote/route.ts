@@ -63,13 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "closed" }, { status: 403 });
     }
     
-    // Check if we're within the Eastern day window
-    if (now < dayStart || now > dayEnd) {
-      console.error("Outside ET day window");
-      return NextResponse.json({ error: "closed" }, { status: 403 });
-    }
-    
-    // Check if we're within the poll's time window (more lenient)
+    // Check if we're within the poll's time window (primary check)
     if (!(ps <= now && now < pe)) {
       console.error("Outside poll window");
       return NextResponse.json({ error: "closed" }, { status: 403 });
