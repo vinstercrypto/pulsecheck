@@ -39,8 +39,8 @@ async function seed() {
   const dataPath = path.join(process.cwd(), 'data', 'polls.json');
   const pollsData: PollQuestion[] = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
-  if (pollsData.length < 30 * DAILY_POLL_COUNT) {
-    console.warn(`Warning: Need at least ${30 * DAILY_POLL_COUNT} questions for 30 days, found ${pollsData.length}`);
+  if (pollsData.length < 100 * DAILY_POLL_COUNT) {
+    console.warn(`Warning: Need at least ${100 * DAILY_POLL_COUNT} questions for 100 days, found ${pollsData.length}`);
   }
 
   // Generate polls starting NOW
@@ -97,7 +97,7 @@ async function seed() {
   startDate.setUTCDate(startDate.getUTCDate() + 1);
   startDate.setUTCHours(0, 0, 0, 0);
 
-  for (let dayOffset = 0; dayOffset < 29; dayOffset++) {
+  for (let dayOffset = 0; dayOffset < 99; dayOffset++) {
     const currentDay = new Date(startDate);
     currentDay.setUTCDate(currentDay.getUTCDate() + dayOffset);
 

@@ -12,7 +12,6 @@ async function getResults(): Promise<PollWithResults[]> {
             .from('poll_results')
             .select('*')
             .in('status', ['live', 'closed'])
-            .gt('total_votes', 0)
             .gte('start_ts', cutoffDate.toISOString())
             .order('start_ts', { ascending: false });
 

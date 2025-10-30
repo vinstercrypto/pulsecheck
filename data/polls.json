@@ -718,5 +718,157 @@
       "Fruit",
       "Chocolate shavings"
     ]
+  },
+  {
+    "question": "Best way to unwind",
+    "options": [
+      "Hot bath",
+      "Good book",
+      "Netflix binge"
+    ]
+  },
+  {
+    "question": "Choose your adventure",
+    "options": [
+      "Mountain hike",
+      "Beach day",
+      "City explore"
+    ]
+  },
+  {
+    "question": "Perfect study snack",
+    "options": [
+      "Trail mix",
+      "Apple slices",
+      "Dark chocolate"
+    ]
+  },
+  {
+    "question": "Your ideal workspace",
+    "options": [
+      "Quiet library",
+      "Busy café",
+      "Home office"
+    ]
+  },
+  {
+    "question": "Best way to start Monday",
+    "options": [
+      "Early workout",
+      "Coffee first",
+      "Slow morning"
+    ]
+  },
+  {
+    "question": "Choose a superpower",
+    "options": [
+      "Read minds",
+      "Time travel",
+      "Heal others"
+    ]
+  },
+  {
+    "question": "Perfect date night",
+    "options": [
+      "Fancy dinner",
+      "Movie night",
+      "Stargazing"
+    ]
+  },
+  {
+    "question": "Your energy drink",
+    "options": [
+      "Green tea",
+      "Energy drink",
+      "Fresh juice"
+    ]
+  },
+  {
+    "question": "Best way to celebrate",
+    "options": [
+      "Dance party",
+      "Quiet dinner",
+      "Adventure trip"
+    ]
+  },
+  {
+    "question": "Choose your pet",
+    "options": [
+      "Loyal dog",
+      "Independent cat",
+      "Colorful fish"
+    ]
+  },
+  {
+    "question": "Perfect weekend",
+    "options": [
+      "Stay in",
+      "Go out",
+      "Mix of both"
+    ]
+  },
+  {
+    "question": "Your dream job",
+    "options": [
+      "Artist",
+      "Scientist",
+      "Entrepreneur"
+    ]
+  },
+  {
+    "question": "Best way to learn",
+    "options": [
+      "Reading",
+      "Videos",
+      "Hands-on"
+    ]
+  },
+  {
+    "question": "Choose your season",
+    "options": [
+      "Spring",
+      "Summer",
+      "Fall"
+    ]
+  },
+  {
+    "question": "Perfect gift",
+    "options": [
+      "Something useful",
+      "Something fun",
+      "Experience"
+    ]
+  },
+  {
+    "question": "Your morning routine",
+    "options": [
+      "Quick & efficient",
+      "Slow & peaceful",
+      "Varies daily"
+    ]
+  },
+  {
+    "question": "Best way to relax",
+    "options": [
+      "Meditation",
+      "Music",
+      "Nature walk"
+    ]
+  },
+  {
+    "question": "Choose your hobby",
+    "options": [
+      "Photography",
+      "Cooking",
+      "Gardening"
+    ]
+  },
+  {
+    "question": "Perfect vacation",
+    "options": [
+      "Beach resort",
+      "Mountain cabin",
+      "City tour"
+    ]
   }
 ]

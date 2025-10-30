@@ -14,8 +14,8 @@ interface VoteComponentProps {
   poll: Poll;
 }
 
-const MSG_THANKS  = "Thanks for your vote — come back tomorrow for new questions.";
-const MSG_ALREADY = "You've already voted today — new poll arrives at 12:00 AM Eastern.";
+const MSG_THANKS  = "Thanks for your vote! Check back tomorrow for new questions.";
+const MSG_ALREADY = "You've already voted today. New poll arrives at 12:00 AM Eastern.";
 const MSG_CLOSED  = "Voting is closed. New questions arrive at 12:00 AM Eastern.";
 const MSG_VERIFY  = "Verification failed. Please verify in World App and try again.";
 const MSG_GENERIC = "Something went wrong. Try again later.";
