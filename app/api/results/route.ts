@@ -13,10 +13,11 @@ export async function GET(request: Request) {
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
   // Get recent polls with vote counts, sorted by start_ts desc
-  // Include all polls regardless of vote count or status
+  // Include all polls regardless of vote count, but only live or closed (no scheduled)
   const { data, error } = await supabase
     .from('poll_results')
     .select('*')
+    .in('status', ['live', 'closed'])
     .gte('start_ts', cutoffDate.toISOString())
     .order('start_ts', { ascending: false });
 

@@ -15,6 +15,7 @@ async function getResults(): Promise<PollWithResults[]> {
         const { data, error } = await supabase
             .from('poll_results')
             .select('*')
+            .in('status', ['live', 'closed'])
             .gte('start_ts', cutoffDate.toISOString())
             .order('start_ts', { ascending: false });
 
