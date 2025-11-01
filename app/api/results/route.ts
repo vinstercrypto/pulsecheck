@@ -1,7 +1,11 @@
 import { supabase } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { advancePolls } from '@/lib/poll-advance';
 
 export async function GET(request: Request) {
+  // Update poll statuses before fetching results
+  await advancePolls();
+
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get('days') || '7');
 
@@ -9,11 +13,10 @@ export async function GET(request: Request) {
   cutoffDate.setDate(cutoffDate.getDate() - days);
 
   // Get recent polls with vote counts, sorted by start_ts desc
+  // Include all polls regardless of vote count or status
   const { data, error } = await supabase
     .from('poll_results')
     .select('*')
-    .in('status', ['live', 'closed'])
-    .gt('total_votes', 0)
     .gte('start_ts', cutoffDate.toISOString())
     .order('start_ts', { ascending: false });
 

@@ -1,9 +1,13 @@
 import ResultsList from "@/components/ResultsList";
 import { PollWithResults } from "@/lib/types";
 import { supabase } from '@/lib/db';
+import { advancePolls } from '@/lib/poll-advance';
 
 async function getResults(): Promise<PollWithResults[]> {
     try {
+        // Update poll statuses before fetching results
+        await advancePolls();
+        
         const days = 7;
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -11,7 +15,6 @@ async function getResults(): Promise<PollWithResults[]> {
         const { data, error } = await supabase
             .from('poll_results')
             .select('*')
-            .in('status', ['live', 'closed'])
             .gte('start_ts', cutoffDate.toISOString())
             .order('start_ts', { ascending: false });
 

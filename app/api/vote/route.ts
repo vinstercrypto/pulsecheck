@@ -78,6 +78,18 @@ export async function POST(request: Request) {
     }
     const nullifier = v.nullifier_hash; // already lowercased
 
+    // Check for existing vote first
+    const { data: existingVote } = await supabase
+      .from("vote")
+      .select("option_idx")
+      .eq("poll_id", pollId)
+      .eq("nullifier_hash", nullifier)
+      .single();
+
+    if (existingVote) {
+      console.log("Duplicate vote detected:", { pollId, nullifier, existingOption: existingVote.option_idx });
+    }
+
     // Insert; rely on PK (poll_id, nullifier_hash)
     const { error: insErr } = await supabase
       .from("vote")

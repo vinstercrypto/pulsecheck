@@ -1,6 +1,7 @@
 import VoteComponent from "@/components/VoteComponent";
 import { Poll } from "@/lib/types";
 import { supabase } from "@/lib/db";
+import { advancePolls } from "@/lib/poll-advance";
 
 interface LivePollsResponse {
   polls: Poll[];
@@ -8,6 +9,9 @@ interface LivePollsResponse {
 }
 
 async function getLivePolls(): Promise<LivePollsResponse> {
+  // Update poll statuses before fetching live polls
+  await advancePolls();
+  
   const nowIso = new Date().toISOString();
   const dailyPollCount = parseInt(process.env.DAILY_POLL_COUNT || "1", 10);
 

@@ -1,7 +1,11 @@
 import { supabase } from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { advancePolls } from '@/lib/poll-advance';
 
 export async function GET() {
+  // Update poll statuses before fetching live polls
+  await advancePolls();
+  
   const nowIso = new Date().toISOString();
 
   // DAILY_POLL_COUNT (default 1, allowed 1 or 2)
