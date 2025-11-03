@@ -11,6 +11,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.43.4
         version: 2.58.0
+      '@worldcoin/idkit-core':
+        specifier: ^2.1.0
+        version: 2.1.0(@types/react@18.3.25)(react@18.3.1)(typescript@5.9.3)
       '@worldcoin/minikit-js':
         specifier: ^1.9.7
         version: 1.9.7(@types/react@18.3.25)(react@18.3.1)(typescript@5.9.3)(viem@2.37.12(typescript@5.9.3))
